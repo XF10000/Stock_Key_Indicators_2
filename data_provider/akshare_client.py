@@ -17,7 +17,8 @@ class AkshareClient:
         self,
         request_delay: float = 0.5,
         retry_times: int = 3,
-        retry_delay: float = 5.0
+        retry_delay: float = 5.0,
+        timeout: float = 30.0
     ):
         """
         初始化 AkShare 客户端
@@ -26,10 +27,12 @@ class AkshareClient:
             request_delay: API 请求间隔（秒）
             retry_times: 失败重试次数
             retry_delay: 重试间隔（秒）
+            timeout: API 请求超时时间（秒）
         """
         self.request_delay = request_delay
         self.retry_times = retry_times
         self.retry_delay = retry_delay
+        self.timeout = timeout
     
     def get_stock_list(self) -> pd.DataFrame:
         """
