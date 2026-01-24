@@ -43,15 +43,15 @@ class AkshareClient:
         """
         for attempt in range(self.retry_times):
             try:
-                # 获取沪深京 A 股列表
-                df = ak.stock_zh_a_spot_em()
+                # 使用 stock_info_a_code_name 接口（更稳定）
+                df = ak.stock_info_a_code_name()
                 
                 if df is not None and not df.empty:
                     # 提取股票代码和名称
-                    # akshare 返回的列名可能是：代码、名称
+                    # 返回的列名是：code、name
                     result = pd.DataFrame({
-                        'stock_code': df['代码'].values,
-                        'stock_name': df['名称'].values
+                        'stock_code': df['code'].values,
+                        'stock_name': df['name'].values
                     })
                     
                     # 添加市场标识
