@@ -68,7 +68,14 @@ class Plotter:
         """
         stock_code = analysis_result['stock_code']
         company_info = analysis_result['company_info']
-        indicators = analysis_result['indicators']
+        indicators = analysis_result['indicators'].copy()
+        
+        # 只保留年度数据（12-31）
+        indicators['report_date'] = pd.to_datetime(indicators['report_date'])
+        indicators = indicators[
+            (indicators['report_date'].dt.month == 12) & 
+            (indicators['report_date'].dt.day == 31)
+        ].copy()
         
         # HTML头部
         html = f"""
@@ -241,16 +248,23 @@ class Plotter:
         if unit == '%':
             valid_data[column_name] = valid_data[column_name] * 100
         
+        # 将日期转换为字符串格式，避免序列化问题
+        valid_data['report_date'] = valid_data['report_date'].astype(str)
+        
+        # 将NaN替换为None，确保JSON序列化正确
+        y_values = valid_data[column_name].replace({float('nan'): None}).tolist()
+        
         # 创建图表
         fig = go.Figure()
         
         fig.add_trace(go.Scatter(
-            x=valid_data['report_date'],
-            y=valid_data[column_name],
+            x=valid_data['report_date'].tolist(),
+            y=y_values,
             mode='lines+markers',
             name=indicator_name,
             line=dict(color='#4CAF50', width=2),
-            marker=dict(size=8)
+            marker=dict(size=8),
+            connectgaps=False
         ))
         
         fig.update_layout(
@@ -311,6 +325,13 @@ class Plotter:
             
             # 写入指标数据
             indicators = analysis_result['indicators'].copy()
+            
+            # 只保留年度数据（12-31）
+            indicators['report_date'] = pd.to_datetime(indicators['report_date'])
+            indicators = indicators[
+                (indicators['report_date'].dt.month == 12) & 
+                (indicators['report_date'].dt.day == 31)
+            ].copy()
             
             # 转换百分比列
             percentage_columns = ['gross_margin', 'working_capital_ratio', 'operating_cashflow_ratio']
