@@ -224,18 +224,28 @@ def main(
     database_url = f"sqlite:///{config.database_path}"
     repository = Repository(database_url)
     
-    # 使用固定的测试股票列表
-    import pandas as pd
-    test_stocks = pd.DataFrame({
-        'stock_code': ['600519', '300750', '000725', '000001', '600036', 
-                       '601318', '600900', '000002', '600276', '601888'],
-        'stock_name': ['贵州茅台', '宁德时代', '京东方A', '平安银行', '招商银行',
-                       '中国平安', '长江电力', '万科A', '恒瑞医药', '中国中免'],
-        'market_code': ['SH600519', 'SZ300750', 'SZ000725', 'SZ000001', 'SH600036',
-                        'SH601318', 'SH600900', 'SZ000002', 'SH600276', 'SH601888']
-    })
-    
-    stock_list = test_stocks
+    # 获取全A股股票列表
+    logger.info("正在获取A股股票列表...")
+    try:
+        all_stocks_df = client.get_stock_list()
+        logger.info(f"获取到 {len(all_stocks_df)} 只股票")
+        
+        # 过滤掉9字头的北交所企业（数据通常缺失）
+        all_stocks_df['stock_code_prefix'] = all_stocks_df['stock_code'].str[0]
+        before_filter = len(all_stocks_df)
+        all_stocks_df = all_stocks_df[all_stocks_df['stock_code_prefix'] != '9'].copy()
+        filtered_count = before_filter - len(all_stocks_df)
+        if filtered_count > 0:
+            logger.info(f"过滤掉 {filtered_count} 只北交所企业（9字头）")
+        
+        # 删除临时列
+        all_stocks_df = all_stocks_df.drop(columns=['stock_code_prefix'])
+        
+        stock_list = all_stocks_df
+        logger.info(f"最终股票数: {len(stock_list)}")
+    except Exception as e:
+        logger.error(f"获取股票列表失败: {e}")
+        return
     
     if limit:
         stock_list = stock_list.head(limit)
