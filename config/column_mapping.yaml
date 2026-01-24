@@ -4,7 +4,7 @@
 
 # 资产负债表列名映射
 balance_sheet:
-  # 资产类
+  # 资产类（中文）
   "货币资金": "monetary_capital"
   "交易性金融资产": "trading_assets"
   "应收票据": "notes_receivable"
@@ -16,6 +16,18 @@ balance_sheet:
   "合同资产": "contract_assets"
   "流动资产合计": "current_assets"
   
+  # 资产类（akshare英文）
+  "MONETARYFUNDS": "monetary_capital"
+  "TRADABLE_FNNCL_ASSETS": "trading_assets"
+  "NOTE_RECE": "notes_receivable"
+  "ACCOUNTS_RECE": "accounts_receivable"
+  "FINANCE_RECE": "receivables_financing"
+  "PREPAYMENT": "prepayments"
+  "OTHER_RECE": "other_receivables"
+  "INVENTORIES": "inventories"
+  "CONTRACT_ASSET": "contract_assets"
+  "TOTAL_CURRENT_ASSETS": "current_assets"
+  
   "长期股权投资": "long_term_equity_investment"
   "投资性房地产": "investment_property"
   "固定资产": "fixed_assets"
@@ -26,10 +38,21 @@ balance_sheet:
   "递延所得税资产": "deferred_tax_assets"
   "非流动资产合计": "non_current_assets"
   
+  "LONG_TERM_EQUITY_INVEST": "long_term_equity_investment"
+  "INVEST_REAL_ESTATE": "investment_property"
+  "FIXED_ASSETS": "fixed_assets"
+  "CIP": "construction_in_progress"
+  "INTANGIBLE_ASSETS": "intangible_assets"
+  "GOODWILL": "goodwill"
+  "LONG_DEFERRED_EXPENSE": "long_term_deferred_expenses"
+  "DEFER_TAX_ASSETS": "deferred_tax_assets"
+  "TOTAL_NONCURRENT_ASSETS": "non_current_assets"
+  
   "资产总计": "total_assets"
   "资产总额": "total_assets"
+  "TOTAL_ASSETS": "total_assets"
   
-  # 负债类
+  # 负债类（中文）
   "短期借款": "short_term_borrowings"
   "交易性金融负债": "trading_liabilities"
   "应付票据": "notes_payable"
@@ -40,15 +63,33 @@ balance_sheet:
   "其他应付款": "other_payables"
   "流动负债合计": "current_liabilities"
   
+  # 负债类（akshare英文）
+  "SHORT_TERM_LOAN": "short_term_borrowings"
+  "TRADABLE_FNNCL_LIAB": "trading_liabilities"
+  "NOTE_PAYABLE": "notes_payable"
+  "ACCOUNTS_PAYABLE": "accounts_payable"
+  "CONTRACT_LIAB": "contract_liabilities"
+  "EMPL_BEN_PAYABLE": "employee_benefits_payable"
+  "TAX_PAYABLE": "taxes_payable"
+  "OTHER_PAYABLE": "other_payables"
+  "TOTAL_CURRENT_LIAB": "current_liabilities"
+  
   "长期借款": "long_term_borrowings"
   "应付债券": "bonds_payable"
   "长期应付款": "long_term_payables"
   "递延所得税负债": "deferred_tax_liabilities"
   "非流动负债合计": "non_current_liabilities"
   
-  "负债合计": "total_liabilities"
+  "LONG_TERM_LOAN": "long_term_borrowings"
+  "BOND_PAYABLE": "bonds_payable"
+  "LONG_TERM_PAYABLE": "long_term_payables"
+  "DEFER_TAX_LIAB": "deferred_tax_liabilities"
+  "TOTAL_NONCURRENT_LIAB": "non_current_liabilities"
   
-  # 所有者权益类
+  "负债合计": "total_liabilities"
+  "TOTAL_LIAB": "total_liabilities"
+  
+  # 所有者权益类（中文）
   "股本": "share_capital"
   "实收资本(或股本)": "share_capital"
   "资本公积": "capital_reserve"
@@ -58,8 +99,18 @@ balance_sheet:
   "所有者权益合计": "total_equity"
   "股东权益合计": "total_equity"
   
+  # 所有者权益类（akshare英文）
+  "SHARE_CAPITAL": "share_capital"
+  "CAPITAL_RESERVE": "capital_reserve"
+  "TREASURY_STOCK": "treasury_stock"
+  "SURPLUS_RESERVE": "surplus_reserve"
+  "UNASSIGN_RPOFIT": "retained_earnings"
+  "TOTAL_EQUITY": "total_equity"
+  "TOTAL_PARENT_EQUITY": "total_equity"
+  
   "负债和所有者权益总计": "total_liabilities_and_equity"
   "负债和股东权益总计": "total_liabilities_and_equity"
+  "TOTAL_LIAB_AND_EQUITY": "total_liabilities_and_equity"
 
 # 利润表列名映射
 income_statement:
@@ -150,6 +201,12 @@ cash_flow_statement:
 
 # 通用字段映射
 common:
+  # 中文列名
   "股票代码": "stock_code"
   "报告日期": "report_date"
   "公告日期": "announcement_date"
+  
+  # akshare 英文列名（东方财富接口）
+  "SECURITY_CODE": "stock_code"
+  "REPORT_DATE": "report_date"
+  "NOTICE_DATE": "announcement_date"
