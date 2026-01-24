@@ -25,7 +25,8 @@ class Orchestrator:
             config_path: 配置文件路径
         """
         self.config = ConfigLoader(config_path)
-        self.logger = Logger()
+        logger_manager = Logger()
+        self.logger = logger_manager.get_logger("orchestrator", "logs/orchestrator.log")
         
         # 构建数据库URL
         db_path = self.config.database_path
@@ -74,17 +75,17 @@ class Orchestrator:
             - indicators: 各指标的计算结果
             - market_comparison: 与市场的对比数据
         """
-        self.logger.log_info(f"开始分析股票: {stock_code}")
+        self.logger.info(f"开始分析股票: {stock_code}")
         
         # 1. 检查数据库是否为空
         if not self.check_database_ready():
-            self.logger.log_error("数据库为空，请先运行 data_updater_robust.py 更新数据")
+            self.logger.error("数据库为空，请先运行 data_updater_robust.py 更新数据")
             return None
         
         # 2. 获取目标公司数据
         company_data = self._get_company_data(stock_code, years)
         if not company_data:
-            self.logger.log_error(f"未找到股票 {stock_code} 的数据")
+            self.logger.error(f"未找到股票 {stock_code} 的数据")
             return None
         
         # 3. 计算指标
@@ -105,7 +106,7 @@ class Orchestrator:
             'market_comparison': market_comparison
         }
         
-        self.logger.log_info(f"分析完成: {stock_code}")
+        self.logger.info(f"分析完成: {stock_code}")
         return result
     
     def _get_company_data(
@@ -181,7 +182,7 @@ class Orchestrator:
             
             cashflow_df = pd.DataFrame([{
                 'report_date': cf.report_date,
-                'operating_cashflow': cf.operating_cashflow
+                'operating_cashflow': cf.net_operating_cash_flow
             } for cf in cashflow_statements])
             
             return {
@@ -235,13 +236,14 @@ class Orchestrator:
             }
             
             # 1. 应收账款周转率
+            ar_turnover = None
             if ttm_revenue and prev_row is not None:
                 ar_turnover = self.calculator.calculate_accounts_receivable_turnover(
                     revenue_ttm=ttm_revenue,
                     ar_begin=prev_row.get('accounts_receivable', 0) or 0,
                     ar_end=row.get('accounts_receivable', 0) or 0
                 )
-                indicator_row['ar_turnover'] = ar_turnover
+            indicator_row['ar_turnover'] = ar_turnover
             
             # 2. 毛利率
             gross_margin = self.calculator.calculate_gross_profit_margin(
@@ -251,13 +253,14 @@ class Orchestrator:
             indicator_row['gross_margin'] = gross_margin
             
             # 3. 长期资产周转率
+            lt_turnover = None
             if ttm_revenue and prev_row is not None:
                 lt_turnover = self.calculator.calculate_long_term_asset_turnover(
                     revenue_ttm=ttm_revenue,
                     noncurrent_assets_begin=prev_row.get('non_current_assets', 0) or 0,
                     noncurrent_assets_end=row.get('non_current_assets', 0) or 0
                 )
-                indicator_row['lt_asset_turnover'] = lt_turnover
+            indicator_row['lt_asset_turnover'] = lt_turnover
             
             # 4. 营运净资本比率
             wc_ratio = self.calculator.calculate_working_capital_ratio(
