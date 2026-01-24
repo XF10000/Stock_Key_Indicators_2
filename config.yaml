@@ -1,0 +1,38 @@
+# A股关键指标分析工具 - 配置文件
+
+# 数据库配置
+database:
+  path: "database.sqlite"
+
+# API配置
+api:
+  request_delay: 0.5  # API请求间隔（秒）
+  retry_times: 3      # 失败重试次数
+  retry_delay: 5      # 重试间隔（秒）
+
+# 数据更新配置
+data_updater:
+  batch_size: 100     # 批量写入数据库的批次大小
+  chunk_size: 1000    # 分块处理的股票数量
+
+# 性能配置
+performance:
+  max_memory_gb: 2    # 单次加载数据的最大内存（GB）
+  chunk_size: 500     # 分块处理的股票数量
+
+# 输出配置
+output:
+  html_dir: "output/html"       # HTML报告输出目录
+  excel_dir: "output/excel"     # Excel文件输出目录
+  report_dir: "output/reports"  # 数据质量报告目录
+
+# 日志配置
+logging:
+  level: "INFO"  # 日志级别: DEBUG, INFO, WARNING, ERROR
+  data_update_log: "logs/data_update.log"           # 数据更新日志
+  calculation_log: "logs/calculation.log"           # 计算过程日志
+  unmapped_columns_log: "logs/unmapped_columns.log" # 未映射列名日志
+
+# 列名映射配置文件路径
+column_mapping:
+  path: "config/column_mapping.yaml"
