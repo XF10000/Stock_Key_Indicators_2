@@ -46,7 +46,7 @@ try:
         print("测试列名映射")
         print("="*60)
         
-        with open('../config/column_mapping.yaml', 'r', encoding='utf-8') as f:
+        with open('config/column_mapping.yaml', 'r', encoding='utf-8') as f:
             column_mapping = yaml.safe_load(f)
         
         mapping = column_mapping.get('balance_sheet', {})
@@ -76,7 +76,7 @@ try:
         print("测试数据库存储")
         print("="*60)
         
-        database_url = "sqlite:///../database_test.sqlite"
+        database_url = "sqlite:///database_test.sqlite"
         engine = create_engine(database_url, echo=False)
         Base.metadata.create_all(engine)
         
