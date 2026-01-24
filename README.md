@@ -80,13 +80,29 @@ pip install -r requirements.txt
 
 ### 第一步：初始化数据库（必须）
 
+**推荐使用健壮版数据更新器**（生产环境）：
+
 ```bash
-python data_updater.py
+# 推荐配置（10线程，每50只股票暂停30秒）
+python data_updater_robust.py --workers 10 --batch-size 50 --batch-pause 30
+
+# 保守配置（更稳定，适合网络不佳环境）
+python data_updater_robust.py --workers 5 --batch-size 30 --batch-pause 60
+
+# 测试模式（仅更新10只股票）
+python data_updater_robust.py --limit 10 --workers 3 --batch-size 3 --batch-pause 5
 ```
 
-- **作用**：获取所有A股公司的历史财务数据并存入本地数据库
-- **注意**：首次运行会非常耗时（可能数小时），但支持断点续传
-- **测试运行**：`python data_updater.py --limit 10` （仅更新10只股票）
+**核心特性**：
+- ⏱️ **超时机制**：API调用30秒超时，避免挂起
+- 🛑 **批次暂停**：每N只股票暂停M秒，防止API限流
+- 💾 **断点续传**：实时保存进度，中断后自动继续（进度保存在 `progress_robust.json`）
+- 🚀 **并发处理**：多线程并发，5000只股票约6小时完成
+- 🚪 **优雅退出**：Ctrl+C 时完成当前批次后退出
+
+**其他版本**：
+- `data_updater.py`：串行版（测试用，约48小时）
+- `data_updater_concurrent.py`：并发版（快但可能被限流，约4小时）
 
 ### 第二步：运行分析
 
