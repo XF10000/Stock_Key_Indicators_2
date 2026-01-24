@@ -224,28 +224,38 @@ def main(
     database_url = f"sqlite:///{config.database_path}"
     repository = Repository(database_url)
     
-    # 获取全A股股票列表
+    # 获取全A股股票列表（带重试机制）
     logger.info("正在获取A股股票列表...")
-    try:
-        all_stocks_df = client.get_stock_list()
-        logger.info(f"获取到 {len(all_stocks_df)} 只股票")
-        
-        # 过滤掉9字头的北交所企业（数据通常缺失）
-        all_stocks_df['stock_code_prefix'] = all_stocks_df['stock_code'].str[0]
-        before_filter = len(all_stocks_df)
-        all_stocks_df = all_stocks_df[all_stocks_df['stock_code_prefix'] != '9'].copy()
-        filtered_count = before_filter - len(all_stocks_df)
-        if filtered_count > 0:
-            logger.info(f"过滤掉 {filtered_count} 只北交所企业（9字头）")
-        
-        # 删除临时列
-        all_stocks_df = all_stocks_df.drop(columns=['stock_code_prefix'])
-        
-        stock_list = all_stocks_df
-        logger.info(f"最终股票数: {len(stock_list)}")
-    except Exception as e:
-        logger.error(f"获取股票列表失败: {e}")
-        return
+    max_retries = 5
+    retry_delay = 10
+    
+    for retry in range(max_retries):
+        try:
+            all_stocks_df = client.get_stock_list()
+            logger.info(f"获取到 {len(all_stocks_df)} 只股票")
+            
+            # 过滤掉9字头的北交所企业（数据通常缺失）
+            all_stocks_df['stock_code_prefix'] = all_stocks_df['stock_code'].str[0]
+            before_filter = len(all_stocks_df)
+            all_stocks_df = all_stocks_df[all_stocks_df['stock_code_prefix'] != '9'].copy()
+            filtered_count = before_filter - len(all_stocks_df)
+            if filtered_count > 0:
+                logger.info(f"过滤掉 {filtered_count} 只北交所企业（9字头）")
+            
+            # 删除临时列
+            all_stocks_df = all_stocks_df.drop(columns=['stock_code_prefix'])
+            
+            stock_list = all_stocks_df
+            logger.info(f"最终股票数: {len(stock_list)}")
+            break
+        except Exception as e:
+            if retry < max_retries - 1:
+                logger.warning(f"获取股票列表失败（尝试 {retry+1}/{max_retries}）: {e}")
+                logger.info(f"等待 {retry_delay} 秒后重试...")
+                time.sleep(retry_delay)
+            else:
+                logger.error(f"获取股票列表失败，已重试 {max_retries} 次: {e}")
+                return
     
     if limit:
         stock_list = stock_list.head(limit)
