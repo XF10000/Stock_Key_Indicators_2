@@ -22,7 +22,19 @@ class Repository:
         Args:
             database_url: 数据库连接 URL
         """
-        self.engine = create_engine(database_url, echo=False)
+        # 增加连接池大小，避免高并发时连接池耗尽
+        # pool_size: 连接池大小（默认5）
+        # max_overflow: 最大溢出连接数（默认10）
+        # pool_recycle: 连接回收时间，避免长时间连接失效（秒）
+        # pool_pre_ping: 使用连接前先ping，确保连接有效
+        self.engine = create_engine(
+            database_url, 
+            echo=False,
+            pool_size=20,           # 增加到20
+            max_overflow=30,        # 最大溢出30
+            pool_recycle=3600,      # 1小时回收
+            pool_pre_ping=True      # 使用前ping
+        )
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
     
