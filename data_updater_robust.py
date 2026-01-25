@@ -391,15 +391,15 @@ def main(
                     )
         
         # 批次完成日志
-        logger.info(f"批次 {batch_num} 完成: 成功 {success_count - (batch_start // batch_size) * batch_size} 只")
+        batch_success = len([f for f in futures if futures[f] and hasattr(futures[f], 'result')])
+        logger.info(f"批次 {batch_num}/{total_batches} 完成: 处理 {len(batch)} 只股票")
+        logger.info(f"当前总计: 成功 {success_count} 只, 失败 {failed_count} 只")
         
         # 批次间暂停（避免API限流）
         if batch_end < len(stock_infos) and not should_stop:
-            logger.info(f"批次完成，暂停 {batch_pause} 秒以避免API限流...")
-            pause_start = time.time()
+            logger.info(f"暂停 {batch_pause} 秒以避免API限流...")
             time.sleep(batch_pause)
-            pause_duration = time.time() - pause_start
-            logger.info(f"暂停完成，实际暂停 {pause_duration:.2f} 秒")
+            logger.info(f"暂停完成，继续处理下一批次...")
     
     end_time = datetime.now()
     duration = (end_time - start_time).total_seconds()
