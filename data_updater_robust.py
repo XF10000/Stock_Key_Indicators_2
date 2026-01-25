@@ -134,43 +134,65 @@ def process_single_stock(
     
     try:
         # 获取财务数据（这里已经有重试机制）
+        logger.debug(f"开始获取 {stock_code} ({stock_name}) 的财务数据...")
+        start_time = time.time()
+        
         data = client.get_all_financial_data(stock_code)
+        
+        fetch_time = time.time() - start_time
+        logger.debug(f"{stock_code} 数据获取完成，耗时 {fetch_time:.2f}秒")
         
         records_saved = 0
         
         # 使用锁保护数据库写入
+        logger.debug(f"{stock_code} 等待数据库锁...")
         with db_lock:
+            logger.debug(f"{stock_code} 获得数据库锁，开始保存数据...")
+            save_start = time.time()
+            
             # 保存资产负债表
             if data['balance_sheet'] is not None:
+                logger.debug(f"{stock_code} 保存资产负债表...")
                 added, skipped = repository.save_balance_sheets(
                     data['balance_sheet'],
                     balance_mapping
                 )
                 records_saved += added
+                logger.debug(f"{stock_code} 资产负债表: 新增{added}条, 跳过{skipped}条")
             
             # 保存利润表
             if data['income_statement'] is not None:
+                logger.debug(f"{stock_code} 保存利润表...")
                 added, skipped = repository.save_income_statements(
                     data['income_statement'],
                     income_mapping
                 )
                 records_saved += added
+                logger.debug(f"{stock_code} 利润表: 新增{added}条, 跳过{skipped}条")
             
             # 保存现金流量表
             if data['cash_flow_statement'] is not None:
+                logger.debug(f"{stock_code} 保存现金流量表...")
                 added, skipped = repository.save_cash_flow_statements(
                     data['cash_flow_statement'],
                     cashflow_mapping
                 )
                 records_saved += added
+                logger.debug(f"{stock_code} 现金流量表: 新增{added}条, 跳过{skipped}条")
+            
+            save_time = time.time() - save_start
+            logger.debug(f"{stock_code} 数据保存完成，耗时 {save_time:.2f}秒")
         
+        total_time = time.time() - start_time
         result['success'] = True
         result['records_saved'] = records_saved
-        logger.info(f"✓ {stock_code} ({stock_name}) 保存 {records_saved} 条记录")
+        logger.info(f"✓ {stock_code} ({stock_name}) 保存 {records_saved} 条记录 (总耗时: {total_time:.2f}秒)")
         
     except Exception as e:
         result['error'] = str(e)
         logger.error(f"✗ {stock_code} ({stock_name}) 失败: {e}")
+        import traceback
+        logger.debug(f"{stock_code} 错误堆栈:\n{traceback.format_exc()}")
     
     return result
 
@@ -195,12 +217,13 @@ def main(
     # 加载配置
     config = ConfigLoader()
     
-    # 设置日志
-    logger_manager = Logger()
-    logger = logger_manager.setup_data_update_logger(
-        'logs/data_update_robust.log'
+    # 设置日志（DEBUG级别以查看详细信息）
+    log_manager = Logger()
+    logger = log_manager.get_logger(
+        "data_update",
+        "logs/data_update_robust.log",
+        "DEBUG"
     )
-    
     logger.info("="*60)
     logger.info("健壮的并发数据更新器启动")
     logger.info("="*60)
@@ -367,10 +390,16 @@ def main(
                         f"批次 {batch_num} [成功:{success_count} 失败:{failed_count}]"
                     )
         
+        # 批次完成日志
+        logger.info(f"批次 {batch_num} 完成: 成功 {success_count - (batch_start // batch_size) * batch_size} 只")
+        
         # 批次间暂停（避免API限流）
         if batch_end < len(stock_infos) and not should_stop:
             logger.info(f"批次完成，暂停 {batch_pause} 秒以避免API限流...")
+            pause_start = time.time()
             time.sleep(batch_pause)
+            pause_duration = time.time() - pause_start
+            logger.info(f"暂停完成，实际暂停 {pause_duration:.2f} 秒")
     
     end_time = datetime.now()
     duration = (end_time - start_time).total_seconds()
