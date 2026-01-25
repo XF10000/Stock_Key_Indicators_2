@@ -77,18 +77,18 @@ class ProgressTracker:
                 json.dump(data, f, ensure_ascii=False, indent=2)
     
     def mark_processed(self, stock_code: str):
-        """标记为已处理"""
+        """标记为已处理（不立即保存）"""
         with progress_lock:
             self.processed_stocks.add(stock_code)
             if stock_code in self.failed_stocks:
                 del self.failed_stocks[stock_code]
-            self.save_progress()
+            # 不在这里保存，改为批次结束后统一保存
     
     def mark_failed(self, stock_code: str, error: str):
-        """标记为失败"""
+        """标记为失败（不立即保存）"""
         with progress_lock:
             self.failed_stocks[stock_code] = error
-            self.save_progress()
+            # 不在这里保存，改为批次结束后统一保存
     
     def is_processed(self, stock_code: str) -> bool:
         """检查是否已处理"""
@@ -418,6 +418,11 @@ def main(
         batch_success = len([f for f in futures if futures[f] and hasattr(futures[f], 'result')])
         logger.info(f"批次 {batch_num}/{total_batches} 完成: 处理 {len(batch)} 只股票")
         logger.info(f"当前总计: 成功 {success_count} 只, 失败 {failed_count} 只")
+        
+        # 批次结束后统一保存进度
+        logger.debug(f"批次 {batch_num}: 保存进度...")
+        progress_tracker.save_progress()
+        logger.debug(f"批次 {batch_num}: 进度已保存")
         logger.debug(f"批次 {batch_num}: batch_end={batch_end}, len(stock_infos)={len(stock_infos)}")
         
         # 批次间暂停（避免API限流）
