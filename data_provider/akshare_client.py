@@ -6,8 +6,10 @@ AkShare API 客户端模块
 import time
 import pandas as pd
 import akshare as ak
-from typing import Optional, List
-from datetime import datetime
+from typing import Optional
+from pathlib import Path
+import json
+from datetime import datetime, timedelta
 
 
 class AkshareClient:
@@ -18,7 +20,9 @@ class AkshareClient:
         request_delay: float = 0.5,
         retry_times: int = 3,
         retry_delay: float = 5.0,
-        timeout: float = 30.0
+        timeout: float = 30.0,
+        cache_dir: str = "cache",
+        cache_days: int = 7
     ):
         """
         初始化 AkShare 客户端
@@ -28,19 +32,42 @@ class AkshareClient:
             retry_times: 失败重试次数
             retry_delay: 重试间隔（秒）
             timeout: API 请求超时时间（秒）
+            cache_dir: 缓存目录
+            cache_days: 缓存有效期（天）
         """
         self.request_delay = request_delay
         self.retry_times = retry_times
         self.retry_delay = retry_delay
         self.timeout = timeout
+        self.cache_dir = Path(cache_dir)
+        self.cache_days = cache_days
+        
+        # 创建缓存目录
+        self.cache_dir.mkdir(exist_ok=True)
+        self.stock_list_cache_file = self.cache_dir / "stock_list_cache.json"
     
-    def get_stock_list(self) -> pd.DataFrame:
+    def get_stock_list(self, use_cache: bool = True) -> pd.DataFrame:
         """
-        获取全部 A 股股票列表
+        获取全部 A 股股票列表（支持本地缓存）
+        
+        Args:
+            use_cache: 是否使用缓存，默认True
         
         Returns:
             包含股票代码和名称的 DataFrame
         """
+        # 1. 检查缓存是否存在且有效
+        if use_cache and self._is_cache_valid():
+            try:
+                cached_data = self._load_cache()
+                if cached_data is not None:
+                    print(f"✓ 使用本地缓存的股票列表（{len(cached_data)} 只股票）")
+                    return cached_data
+            except Exception as e:
+                print(f"⚠ 加载缓存失败: {e}，将从API获取")
+        
+        # 2. 从API获取
+        print("正在从API获取股票列表...")
         for attempt in range(self.retry_times):
             try:
                 # 使用 stock_info_a_code_name 接口（更稳定）
@@ -57,6 +84,11 @@ class AkshareClient:
                     # 添加市场标识
                     result['market_code'] = result['stock_code'].apply(self._add_market_prefix)
                     
+                    # 3. 保存到缓存
+                    if use_cache:
+                        self._save_cache(result)
+                        print(f"✓ 已保存股票列表到缓存（{len(result)} 只股票）")
+                    
                     return result
                 
             except Exception as e:
@@ -66,6 +98,47 @@ class AkshareClient:
                     raise Exception(f"获取股票列表失败: {e}")
         
         raise Exception("获取股票列表失败")
+    
+    def _is_cache_valid(self) -> bool:
+        """检查缓存是否有效"""
+        if not self.stock_list_cache_file.exists():
+            return False
+        
+        try:
+            with open(self.stock_list_cache_file, 'r', encoding='utf-8') as f:
+                cache_data = json.load(f)
+            
+            cache_time = datetime.fromisoformat(cache_data['timestamp'])
+            age = datetime.now() - cache_time
+            
+            return age.days < self.cache_days
+        except Exception:
+            return False
+    
+    def _load_cache(self) -> Optional[pd.DataFrame]:
+        """从缓存加载股票列表"""
+        try:
+            with open(self.stock_list_cache_file, 'r', encoding='utf-8') as f:
+                cache_data = json.load(f)
+            
+            df = pd.DataFrame(cache_data['data'])
+            return df
+        except Exception as e:
+            raise Exception(f"加载缓存失败: {e}")
+    
+    def _save_cache(self, df: pd.DataFrame):
+        """保存股票列表到缓存"""
+        try:
+            cache_data = {
+                'timestamp': datetime.now().isoformat(),
+                'count': len(df),
+                'data': df.to_dict('records')
+            }
+            
+            with open(self.stock_list_cache_file, 'w', encoding='utf-8') as f:
+                json.dump(cache_data, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"⚠ 保存缓存失败: {e}")
     
     def _add_market_prefix(self, code: str) -> str:
         """
