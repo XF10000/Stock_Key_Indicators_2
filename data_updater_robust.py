@@ -351,6 +351,7 @@ def main(
             logger.debug(f"批次 {batch_num}: 开始等待 {len(futures)} 个任务完成...")
             completed_count = 0
             with tqdm(total=len(futures), desc=f"批次 {batch_num}") as pbar:
+                logger.debug(f"批次 {batch_num}: tqdm已创建，开始迭代as_completed...")
                 for future in as_completed(futures):
                     completed_count += 1
                     logger.debug(f"批次 {batch_num}: 第 {completed_count}/{len(futures)} 个任务完成")
@@ -359,22 +360,30 @@ def main(
                         logger.debug(f"批次 {batch_num}: 收到停止信号")
                         break
                     
+                    logger.debug(f"批次 {batch_num}: 获取future对应的stock_info...")
                     stock_info = futures[future]
                     logger.debug(f"批次 {batch_num}: 处理 {stock_info['market_code']} 的结果...")
                     
                     try:
+                        logger.debug(f"批次 {batch_num}: 调用future.result()...")
                         result = future.result(timeout=70.0)  # 比内部超时多10秒
+                        logger.debug(f"批次 {batch_num}: future.result()返回，success={result['success']}")
                         
                         if result['success']:
+                            logger.debug(f"批次 {batch_num}: 更新success_count...")
                             success_count += 1
                             total_records += result['records_saved']
+                            logger.debug(f"批次 {batch_num}: 调用mark_processed...")
                             progress_tracker.mark_processed(result['stock_code'])
+                            logger.debug(f"批次 {batch_num}: mark_processed完成")
                         else:
+                            logger.debug(f"批次 {batch_num}: 处理失败，调用mark_failed...")
                             failed_count += 1
                             progress_tracker.mark_failed(
                                 result['stock_code'],
                                 result['error']
                             )
+                            logger.debug(f"批次 {batch_num}: mark_failed完成")
                         
                     except TimeoutError:
                         failed_count += 1
@@ -387,15 +396,22 @@ def main(
                     except Exception as e:
                         failed_count += 1
                         logger.error(f"✗ {stock_info['market_code']} 异常: {e}")
+                        logger.debug(f"批次 {batch_num}: 异常详情: {e}")
+                        import traceback
+                        logger.debug(f"批次 {batch_num}: 异常堆栈:\n{traceback.format_exc()}")
                         progress_tracker.mark_failed(
                             stock_info['market_code'],
                             str(e)
                         )
                     
+                    logger.debug(f"批次 {batch_num}: 更新pbar...")
                     pbar.update(1)
                     pbar.set_description(
                         f"批次 {batch_num} [成功:{success_count} 失败:{failed_count}]"
                     )
+                    logger.debug(f"批次 {batch_num}: pbar更新完成，准备处理下一个future...")
+                
+                logger.debug(f"批次 {batch_num}: as_completed循环结束")
         
         # 批次完成日志
         logger.debug(f"批次 {batch_num}: ThreadPoolExecutor上下文已退出")
