@@ -10,36 +10,7 @@ from typing import Optional
 from pathlib import Path
 import json
 from datetime import datetime, timedelta
-import signal
-from contextlib import contextmanager
-
-
-class TimeoutException(Exception):
-    """超时异常"""
-    pass
-
-
-@contextmanager
-def timeout(seconds):
-    """
-    超时上下文管理器
-    
-    Args:
-        seconds: 超时秒数
-    """
-    def timeout_handler(signum, frame):
-        raise TimeoutException(f"操作超时（{seconds}秒）")
-    
-    # 设置信号处理器
-    old_handler = signal.signal(signal.SIGALRM, timeout_handler)
-    signal.alarm(seconds)
-    
-    try:
-        yield
-    finally:
-        # 恢复原来的信号处理器
-        signal.alarm(0)
-        signal.signal(signal.SIGALRM, old_handler)
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 
 
 class AkshareClient:
@@ -259,16 +230,22 @@ class AkshareClient:
                 # 请求延迟
                 time.sleep(self.request_delay)
                 
-                # 使用超时控制（30秒）
-                with timeout(30):
-                    df = fetch_func(symbol=stock_code)
+                # 使用线程池实现超时控制（30秒）
+                with ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(fetch_func, symbol=stock_code)
+                    try:
+                        df = future.result(timeout=30)
+                    except FutureTimeoutError:
+                        # 超时，取消任务
+                        future.cancel()
+                        raise FutureTimeoutError(f"{data_type}获取超时（30秒）")
                 
                 if df is not None and not df.empty:
                     return df
                 else:
                     return None
                     
-            except TimeoutException as e:
+            except FutureTimeoutError as e:
                 # 超时异常
                 if attempt < self.retry_times - 1:
                     time.sleep(self.retry_delay)
