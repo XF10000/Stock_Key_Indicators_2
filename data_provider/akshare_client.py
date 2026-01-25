@@ -10,7 +10,6 @@ from typing import Optional
 from pathlib import Path
 import json
 from datetime import datetime, timedelta
-from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeoutError
 
 
 class AkshareClient:
@@ -230,28 +229,16 @@ class AkshareClient:
                 # 请求延迟
                 time.sleep(self.request_delay)
                 
-                # 使用线程池实现超时控制（30秒）
-                with ThreadPoolExecutor(max_workers=1) as executor:
-                    future = executor.submit(fetch_func, symbol=stock_code)
-                    try:
-                        df = future.result(timeout=30)
-                    except FutureTimeoutError:
-                        # 超时，取消任务
-                        future.cancel()
-                        raise FutureTimeoutError(f"{data_type}获取超时（30秒）")
+                # 直接调用akshare API（依赖其内部超时机制）
+                df = fetch_func(symbol=stock_code)
                 
                 if df is not None and not df.empty:
                     return df
                 else:
                     return None
                     
-            except FutureTimeoutError as e:
-                # 超时异常
-                if attempt < self.retry_times - 1:
-                    time.sleep(self.retry_delay)
-                else:
-                    return None
             except Exception as e:
+                # 任何异常都重试
                 if attempt < self.retry_times - 1:
                     time.sleep(self.retry_delay)
                 else:

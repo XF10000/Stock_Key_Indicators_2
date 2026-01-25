@@ -348,12 +348,19 @@ def main(
             }
             
             # 处理完成的任务
+            logger.debug(f"批次 {batch_num}: 开始等待 {len(futures)} 个任务完成...")
+            completed_count = 0
             with tqdm(total=len(futures), desc=f"批次 {batch_num}") as pbar:
                 for future in as_completed(futures):
+                    completed_count += 1
+                    logger.debug(f"批次 {batch_num}: 第 {completed_count}/{len(futures)} 个任务完成")
+                    
                     if should_stop:
+                        logger.debug(f"批次 {batch_num}: 收到停止信号")
                         break
                     
                     stock_info = futures[future]
+                    logger.debug(f"批次 {batch_num}: 处理 {stock_info['market_code']} 的结果...")
                     
                     try:
                         result = future.result(timeout=70.0)  # 比内部超时多10秒
@@ -391,15 +398,23 @@ def main(
                     )
         
         # 批次完成日志
+        logger.debug(f"批次 {batch_num}: ThreadPoolExecutor上下文已退出")
         batch_success = len([f for f in futures if futures[f] and hasattr(futures[f], 'result')])
         logger.info(f"批次 {batch_num}/{total_batches} 完成: 处理 {len(batch)} 只股票")
         logger.info(f"当前总计: 成功 {success_count} 只, 失败 {failed_count} 只")
+        logger.debug(f"批次 {batch_num}: batch_end={batch_end}, len(stock_infos)={len(stock_infos)}")
         
         # 批次间暂停（避免API限流）
         if batch_end < len(stock_infos) and not should_stop:
             logger.info(f"暂停 {batch_pause} 秒以避免API限流...")
+            logger.debug(f"批次 {batch_num}: 开始暂停...")
             time.sleep(batch_pause)
+            logger.debug(f"批次 {batch_num}: 暂停完成")
             logger.info(f"暂停完成，继续处理下一批次...")
+        else:
+            logger.debug(f"批次 {batch_num}: 无需暂停（batch_end={batch_end}, len={len(stock_infos)}, should_stop={should_stop}）")
+        
+        logger.debug(f"批次 {batch_num}: 准备进入下一次循环...")
     
     end_time = datetime.now()
     duration = (end_time - start_time).total_seconds()
