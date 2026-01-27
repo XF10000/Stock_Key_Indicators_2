@@ -151,6 +151,39 @@ class Plotter:
             color: #999;
             font-size: 14px;
         }}
+        details {{
+            background-color: #f8f9fa;
+            border-left: 4px solid #4CAF50;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }}
+        summary {{
+            cursor: pointer;
+            font-weight: bold;
+            color: #4CAF50;
+            padding: 5px 0;
+            user-select: none;
+        }}
+        summary:hover {{
+            color: #45a049;
+        }}
+        summary::marker {{
+            color: #4CAF50;
+        }}
+        .analysis-content {{
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            line-height: 1.8;
+        }}
+        .analysis-content ol {{
+            padding-left: 20px;
+        }}
+        .analysis-content li {{
+            margin-bottom: 12px;
+            color: #444;
+        }}
     </style>
 </head>
 <body>
@@ -180,6 +213,19 @@ class Plotter:
             • TTM营业收入 = 最近四个季度的单季度营业收入之和<br>
             • 报告中显示的是对数值：ln(应收账款周转率)
         </p>'''
+        html += '''
+        <details>
+            <summary>📊 点击展开：指标1深度分析说明</summary>
+            <div class="analysis-content">
+                <ol>
+                    <li><strong>10年数据透视：</strong>应收账款周转率在全A样本中呈对数正态分布，真实性具备保障</li>
+                    <li><strong>虚增收入检验逻辑：</strong>应收账款周转率=营业收入/应收账款，通常大于1，因此如果通过虚增应收账款来虚增营业收入，分子分母同时增加相同的值，应收账款周转率大概率下降。应收账款周转率下降意味着企业在产业链上的竞争力减弱</li>
+                    <li><strong>毛利率交叉验证：</strong>但是营业成本很难随营业收入等比例虚增（折旧源于历史成本，员工工资需要和社保数据对应），如果通过虚增应收账款来虚增营业收入，毛利率可能上升，这又意味着企业议价权提高，与应收账款周转率指向不一致</li>
+                    <li><strong>一致性检验：</strong>因此，检验应收账款周转率和毛利率走势一致性，是重要的报表质量验证方法，不一致不一定有问题，但是需要给出合理解释</li>
+                </ol>
+            </div>
+        </details>
+        '''
         html += self._create_indicator1_charts(indicators, market_comparison, company_name)
         
         # 指标2-4：标准单指标展示
@@ -196,7 +242,15 @@ class Plotter:
                     • 即：长期经营资产 = 固定资产 + 在建工程 + 生产性生物资产 + 公益性生物资产 + 油气资产 + 使用权资产 + 无形资产 + 开发支出 + 商誉 + 长期待摊费用 + 其他非流动资产<br>
                     • TTM营业收入 = 最近四个季度的单季度营业收入之和<br>
                     • 报告中显示的是对数值：ln(长期资产周转率)''',
-                'title': '指标2：再投资质量'
+                'title': '指标2：再投资质量',
+                'analysis_note': '''
+                    <ol>
+                        <li><strong>10年数据透视：</strong>营业收入/(固定资产+无形资产)在全A样本中呈对数正态分布</li>
+                        <li><strong>影响因素：</strong>影响固定资产周转率的因素包括单位产能造价、产能利用率、产品单价，一方面反映再投资质量，同时可以反映跑冒滴漏程度</li>
+                        <li><strong>三步循环法检验：</strong>如果上市公司采用了完整的"三步循环法"一般会将虚增的利润(或者跑冒滴漏)变成了固定资产、无形资产等长期资产，再通过未来折旧或者减值消化，由于资产负债表是累积式的，周转率指标会发生趋势性下降</li>
+                        <li><strong>分析要点：</strong>无论是哪种情况，固定资产+无形资产周转率下降，尤其是单个公司在全A样本中的分位数下降，都代表存量资产以及再投资质量下降，是重大的负面指标；反之则意味着资产利用效率、产业竞争力实打实改善</li>
+                    </ol>
+                '''
             },
             {
                 'name': '营运净资本比率',
@@ -207,7 +261,15 @@ class Plotter:
                     • 营运净资本 = 应收账款 + 应收票据 + 应收款项融资 + 合同资产 - 应付账款 - 应付票据 - 合同负债<br>
                     • 营运净资本比率 = 营运净资本 / 总资产 × 100%<br>
                     • 负值表示公司占用上下游资金，正值表示被上下游占用资金''',
-                'title': '指标3：产业链地位'
+                'title': '指标3：产业链地位',
+                'analysis_note': '''
+                    <ol>
+                        <li><strong>10年数据透视：</strong>营运净资本占总资产的比例在全A样本呈正态分布，真实性具备保障</li>
+                        <li><strong>双重含义：</strong>营运净资本(应收账款+应收票据+应收款项融资+合同资产-应付账款-应付票据-合同负债)占比一方面体现上市公司资金运用效率，即不能创造收益的在途资金占比，另一方面反映公司在上下游产业链中的地位</li>
+                        <li><strong>分布特征：</strong>该指标是所有指标中，全A样本分布"最正态"的一个，且全A样本中位数非常接近零</li>
+                        <li><strong>龙头验证：</strong>尤其注意单个公司的该指标在全A样本中的分位数的边际变化。如果该公司在估值中的叙事是"龙头优势明显、强者恒强"，营运净资本占比在全A样本中的分位数就应该持续下降，或者绝对分位数很低，否则就是重大不一致，需要找到充足的理由解释</li>
+                    </ol>
+                '''
             },
             {
                 'name': '经营现金流比率',
@@ -218,13 +280,30 @@ class Plotter:
                     • 经营现金流比率 = 经营活动产生的现金流量净额 / 总资产 × 100%<br>
                     • 反映每单位资产创造的经营现金流<br>
                     • 数值越高，说明公司盈利质量越好，现金回收能力越强''',
-                'title': '指标4：真实盈利能力'
+                'title': '指标4：真实盈利能力',
+                'analysis_note': '''
+                    <ol>
+                        <li><strong>10年数据透视：</strong>经营性现金流量净额/总资产在全A样本呈正态分布，真实性具备保障</li>
+                        <li><strong>等价ROA：</strong>经营性现金流量净额中包含财务费用，因此分母用总资产，该指标相当于ROA。如之前所述，全A样本ROE存在调节的可能性，该指标更能体现资产的现金流创造能力</li>
+                        <li><strong>市场基准：</strong>2024年全A样本该指标的中位数只有4.3%，反映了A股市场加杠杆之前的"平均盈利水平"；而2025Q1分布则呈现明显的左侧厚尾(历年一季度都有这个特点)，中位数接近零，即大部分公司一季度回款一般，如果单个公司一季度回款较好，则尤为不易</li>
+                        <li><strong>叙事一致性：</strong>该指标的绝对值高低本身无谓多空，而是要对比财报中的画像与估值中隐含的叙事的一致性，包括历史趋势与全A样本分位数走势</li>
+                    </ol>
+                '''
             }
         ]
         
         for config in standard_indicators:
             html += f'<h2 style="color: #C41E3A; border-bottom: 2px solid #C41E3A; padding-bottom: 10px;">{config["title"]} - {config["name"]}</h2>'
             html += f'<p style="color: #666; margin-bottom: 20px;">{config["description"]}</p>'
+            # 添加深度分析说明（可展开/隐藏）
+            html += f'''
+            <details>
+                <summary>📊 点击展开：{config["title"]}深度分析说明</summary>
+                <div class="analysis-content">
+                    {config["analysis_note"]}
+                </div>
+            </details>
+            '''
             html += self._create_standard_indicator_charts(
                 indicators,
                 market_comparison,
