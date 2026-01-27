@@ -69,3 +69,6 @@ dmypy.json
 data/
 *.csv
 *.parquet
+
+# Private workflow files
+docs/vibe coding prompts/
