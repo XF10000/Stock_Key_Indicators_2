@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from typing import List, Dict, Any, Optional
 from datetime import datetime, date
 
-from models import Base, BalanceSheet, IncomeStatement, CashFlowStatement, IndicatorMedian
+from models import Base, BalanceSheet, IncomeStatement, CashFlowStatement, IndicatorMedian, StockInfo
 
 
 class Repository:
@@ -33,8 +33,26 @@ class Repository:
             pool_size=20,           # 增加到20
             max_overflow=30,        # 最大溢出30
             pool_recycle=3600,      # 1小时回收
-            pool_pre_ping=True      # 使用前ping
+            pool_pre_ping=True,     # 使用前ping
+            connect_args={
+                'timeout': 30,      # SQLite锁超时时间（秒）
+                'check_same_thread': False  # 允许多线程访问
+            }
         )
+        
+        # 为SQLite启用WAL模式，大幅提升并发性能
+        if 'sqlite' in database_url:
+            from sqlalchemy import event
+            
+            @event.listens_for(self.engine, "connect")
+            def set_sqlite_pragma(dbapi_conn, connection_record):
+                cursor = dbapi_conn.cursor()
+                cursor.execute("PRAGMA journal_mode=WAL")
+                cursor.execute("PRAGMA synchronous=NORMAL")
+                cursor.execute("PRAGMA cache_size=10000")
+                cursor.execute("PRAGMA temp_store=MEMORY")
+                cursor.close()
+        
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)
     
@@ -125,33 +143,56 @@ class Repository:
             valid_cols = [col for col in df_renamed.columns if hasattr(model_class, col)]
             df_to_save = df_renamed[valid_cols]
             
+            # 批量准备数据字典
+            data_dicts = []
             for _, row in df_to_save.iterrows():
                 data_dict = self._prepare_data_dict(row, valid_cols)
-                
-                # 检查记录是否已存在
-                existing = session.query(model_class).filter_by(
-                    stock_code=data_dict.get('stock_code'),
-                    report_date=data_dict.get('report_date')
-                ).first()
-                
-                if existing:
-                    skipped_count += 1
-                else:
-                    try:
-                        record = model_class(**data_dict)
-                        session.add(record)
-                        added_count += 1
-                    except Exception as e:
-                        # 单条记录失败不影响其他记录
-                        continue
+                if data_dict.get('stock_code') and data_dict.get('report_date'):
+                    data_dicts.append(data_dict)
             
-            session.commit()
+            if data_dicts:
+                # 使用bulk_insert_mappings进行批量插入
+                # 这比逐条插入快得多，且减少了数据库锁竞争
+                try:
+                    session.bulk_insert_mappings(model_class, data_dicts)
+                    session.commit()
+                    added_count = len(data_dicts)
+                except Exception as e:
+                    # 如果批量插入失败（可能是重复键），回退到逐条插入
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.warning(f"批量插入失败，回退到逐条插入: {str(e)[:200]}")
+                    session.rollback()
+                    
+                    for data_dict in data_dicts:
+                        try:
+                            # 检查是否已存在
+                            existing = session.query(model_class).filter_by(
+                                stock_code=data_dict.get('stock_code'),
+                                report_date=data_dict.get('report_date')
+                            ).first()
+                            
+                            if existing:
+                                skipped_count += 1
+                            else:
+                                record = model_class(**data_dict)
+                                session.add(record)
+                                added_count += 1
+                        except Exception:
+                            skipped_count += 1
+                            continue
+                    
+                    session.commit()
             
         except Exception as e:
             session.rollback()
             raise e
         finally:
-            session.close()
+            # 确保session被关闭
+            try:
+                session.close()
+            except Exception:
+                pass
         
         return added_count, skipped_count
     
@@ -229,6 +270,40 @@ class Repository:
             # 从资产负债表中获取已有的股票代码
             result = session.query(BalanceSheet.stock_code).distinct().all()
             return {row[0] for row in result}
+        finally:
+            session.close()
+    
+    def save_stock_info(self, stock_code: str, stock_name: str) -> None:
+        """
+        保存股票基本信息
+        
+        Args:
+            stock_code: 股票代码
+            stock_name: 公司名称
+        """
+        session = self.get_session()
+        try:
+            # 检查是否已存在
+            existing = session.query(StockInfo).filter(
+                StockInfo.stock_code == stock_code
+            ).first()
+            
+            if existing:
+                # 更新名称（如果有变化）
+                if existing.stock_name != stock_name:
+                    existing.stock_name = stock_name
+                    session.commit()
+            else:
+                # 插入新记录
+                stock_info = StockInfo(
+                    stock_code=stock_code,
+                    stock_name=stock_name
+                )
+                session.add(stock_info)
+                session.commit()
+        except Exception as e:
+            session.rollback()
+            raise e
         finally:
             session.close()
     

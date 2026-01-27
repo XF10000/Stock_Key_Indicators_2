@@ -104,6 +104,12 @@ def main(limit: int = None):
                 continue
             
             try:
+                # 保存股票信息（股票代码和公司名称的映射）
+                try:
+                    repository.save_stock_info(stock_code, stock_name)
+                except Exception as e:
+                    logger.warning(f"保存股票信息失败 {stock_code}: {e}")
+                
                 # 获取财务数据
                 data = client.get_all_financial_data(stock_code)
                 

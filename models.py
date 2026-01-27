@@ -17,6 +17,23 @@ from sqlalchemy.orm import declarative_base
 Base = declarative_base()
 
 
+class StockInfo(Base):
+    """股票基本信息表
+    
+    存储股票代码和公司名称的映射关系
+    """
+    
+    __tablename__ = "stock_info"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    stock_code = Column(String(20), nullable=False, unique=True, index=True, comment="股票代码")
+    stock_name = Column(String(100), nullable=False, comment="公司名称")
+    
+    __table_args__ = (
+        Index('idx_stock_code', 'stock_code'),
+    )
+
+
 class BalanceSheet(Base):
     """资产负债表模型
     

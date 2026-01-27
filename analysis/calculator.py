@@ -92,27 +92,28 @@ class FinancialCalculator:
     @staticmethod
     def calculate_long_term_asset_turnover(
         revenue_ttm: float,
-        noncurrent_assets_begin: float,
-        noncurrent_assets_end: float
+        long_term_operating_assets_begin: float,
+        long_term_operating_assets_end: float
     ) -> Optional[float]:
         """
         计算长期资产周转率（长期经营资产周转率）
         
-        公式: 长期资产周转率 = TTM营业收入 / 平均非流动资产
+        公式: 长期资产周转率 = TTM营业收入 / 平均长期经营资产
+        长期经营资产 = 固定资产 + 在建工程 + 无形资产 + 商誉 + 长期待摊费用 + 其他经营性非流动资产
         
         Args:
             revenue_ttm: TTM营业收入
-            noncurrent_assets_begin: 期初非流动资产
-            noncurrent_assets_end: 期末非流动资产
+            long_term_operating_assets_begin: 期初长期经营资产
+            long_term_operating_assets_end: 期末长期经营资产
             
         Returns:
             周转率（次数），计算失败返回None
         """
         try:
-            avg_noncurrent_assets = (noncurrent_assets_begin + noncurrent_assets_end) / 2
-            if avg_noncurrent_assets == 0:
+            avg_long_term_assets = (long_term_operating_assets_begin + long_term_operating_assets_end) / 2
+            if avg_long_term_assets == 0:
                 return None
-            return revenue_ttm / avg_noncurrent_assets
+            return revenue_ttm / avg_long_term_assets
         except (TypeError, ZeroDivisionError):
             return None
     

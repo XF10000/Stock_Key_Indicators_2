@@ -94,11 +94,15 @@ class Orchestrator:
         # 4. 获取市场数据并进行对比
         market_comparison = self._compare_with_market(stock_code, indicators)
         
+        # 获取公司名称
+        stock_name = self._get_stock_name(stock_code)
+        
         # 5. 组装结果
         result = {
             'stock_code': stock_code,
             'company_info': {
                 'stock_code': stock_code,
+                'stock_name': stock_name,
                 'analysis_date': datetime.now().strftime("%Y-%m-%d"),
                 'data_years': years
             },
@@ -235,7 +239,7 @@ class Orchestrator:
                 'report_date': report_date,
             }
             
-            # 1. 应收账款周转率
+            # 1. 应收账款周转率（取对数）
             ar_turnover = None
             if ttm_revenue and prev_row is not None:
                 ar_turnover = self.calculator.calculate_accounts_receivable_turnover(
@@ -243,6 +247,10 @@ class Orchestrator:
                     ar_begin=prev_row.get('accounts_receivable', 0) or 0,
                     ar_end=row.get('accounts_receivable', 0) or 0
                 )
+                # 对周转率取对数
+                if ar_turnover is not None and ar_turnover > 0:
+                    import numpy as np
+                    ar_turnover = np.log(ar_turnover)
             indicator_row['ar_turnover'] = ar_turnover
             
             # 2. 毛利率
@@ -252,26 +260,48 @@ class Orchestrator:
             )
             indicator_row['gross_margin'] = gross_margin
             
-            # 3. 长期资产周转率
+            # 3. 长期资产周转率（取对数）
             lt_turnover = None
             if ttm_revenue and prev_row is not None:
+                # 计算长期经营资产 = 非流动资产合计 - 长期股权投资 - 投资性房地产 - 递延所得税资产
+                def calc_long_term_operating_assets(row_data):
+                    non_current = row_data.get('non_current_assets', 0) or 0
+                    lt_equity_inv = row_data.get('long_term_equity_investment', 0) or 0
+                    inv_property = row_data.get('investment_property', 0) or 0
+                    deferred_tax = row_data.get('deferred_tax_assets', 0) or 0
+                    
+                    return max(0, non_current - lt_equity_inv - inv_property - deferred_tax)
+                
+                lt_assets_begin = calc_long_term_operating_assets(prev_row)
+                lt_assets_end = calc_long_term_operating_assets(row)
+                
                 lt_turnover = self.calculator.calculate_long_term_asset_turnover(
                     revenue_ttm=ttm_revenue,
-                    noncurrent_assets_begin=prev_row.get('non_current_assets', 0) or 0,
-                    noncurrent_assets_end=row.get('non_current_assets', 0) or 0
+                    long_term_operating_assets_begin=lt_assets_begin,
+                    long_term_operating_assets_end=lt_assets_end
                 )
+                # 对周转率取对数
+                if lt_turnover is not None and lt_turnover > 0:
+                    import numpy as np
+                    lt_turnover = np.log(lt_turnover)
             indicator_row['lt_asset_turnover'] = lt_turnover
             
             # 4. 营运净资本比率
+            # 使用pd.isna()检查NaN值，将NaN转换为0
+            import pandas as pd
+            def get_value_or_zero(series_row, key):
+                val = series_row.get(key, 0)
+                return 0 if pd.isna(val) else val
+            
             wc_ratio = self.calculator.calculate_working_capital_ratio(
-                accounts_receivable=row.get('accounts_receivable', 0),
-                notes_receivable=row.get('notes_receivable', 0),
-                receivables_financing=row.get('receivables_financing', 0),
-                contract_assets=row.get('contract_assets', 0),
-                accounts_payable=row.get('accounts_payable', 0),
-                notes_payable=row.get('notes_payable', 0),
-                contract_liabilities=row.get('contract_liabilities', 0),
-                total_assets=row.get('total_assets', 0) or 0
+                accounts_receivable=get_value_or_zero(row, 'accounts_receivable'),
+                notes_receivable=get_value_or_zero(row, 'notes_receivable'),
+                receivables_financing=get_value_or_zero(row, 'receivables_financing'),
+                contract_assets=get_value_or_zero(row, 'contract_assets'),
+                accounts_payable=get_value_or_zero(row, 'accounts_payable'),
+                notes_payable=get_value_or_zero(row, 'notes_payable'),
+                contract_liabilities=get_value_or_zero(row, 'contract_liabilities'),
+                total_assets=get_value_or_zero(row, 'total_assets')
             )
             indicator_row['working_capital_ratio'] = wc_ratio
             
@@ -337,9 +367,292 @@ class Orchestrator:
             indicators: 公司指标数据
             
         Returns:
-            市场对比数据
+            市场对比数据，包含各指标的中位数、分位数和分布信息
         """
-        # TODO: 实现市场对比逻辑
-        # 这需要获取全市场数据并计算中位数、分位数等
-        # 暂时返回空字典
-        return {}
+        self.logger.info("开始计算市场对比数据...")
+        
+        # 指标列表
+        indicator_columns = [
+            'ar_turnover',
+            'gross_margin', 
+            'lt_asset_turnover',
+            'working_capital_ratio',
+            'operating_cashflow_ratio'
+        ]
+        
+        market_comparison = {}
+        
+        for indicator_col in indicator_columns:
+            self.logger.info(f"处理指标: {indicator_col}")
+            
+            # 获取目标公司该指标的历史数据
+            company_data = indicators[['report_date', indicator_col]].copy()
+            company_data = company_data[company_data[indicator_col].notna()]
+            
+            if len(company_data) == 0:
+                continue
+            
+            # 为每个报告期计算市场数据
+            comparison_results = []
+            
+            for _, row in company_data.iterrows():
+                report_date = row['report_date']
+                company_value = row[indicator_col]
+                
+                # 获取全市场该报告期的数据
+                market_values = self._get_market_indicator_values(
+                    indicator_col,
+                    report_date
+                )
+                
+                if market_values is None or len(market_values) == 0:
+                    continue
+                
+                # 计算市场中位数
+                market_median = self.analyzer.calculate_market_median(
+                    indicator_col,
+                    report_date,
+                    market_values
+                )
+                
+                # 计算分位数
+                percentile = self.analyzer.calculate_percentile(
+                    company_value,
+                    market_values
+                )
+                
+                comparison_results.append({
+                    'report_date': report_date,
+                    'company_value': company_value,
+                    'market_median': market_median,
+                    'percentile': percentile
+                })
+            
+            if comparison_results:
+                market_comparison[indicator_col] = pd.DataFrame(comparison_results)
+                
+                # 计算最新一期的市场分布
+                latest_date = company_data['report_date'].max()
+                latest_market_values = self._get_market_indicator_values(
+                    indicator_col,
+                    latest_date
+                )
+                
+                if latest_market_values:
+                    distribution = self.analyzer.calculate_distribution(latest_market_values)
+                    market_comparison[f'{indicator_col}_distribution'] = distribution
+        
+        self.logger.info("市场对比数据计算完成")
+        return market_comparison
+    
+    def _get_stock_name(self, stock_code: str) -> str:
+        """
+        从数据库获取股票名称
+        
+        Args:
+            stock_code: 股票代码
+            
+        Returns:
+            股票名称
+        """
+        session = self.repository.get_session()
+        try:
+            from models import StockInfo
+            
+            # 从数据库中查询股票名称
+            result = session.query(StockInfo.stock_name).filter(
+                StockInfo.stock_code == stock_code
+            ).first()
+            
+            if result and result.stock_name:
+                return result.stock_name
+                
+        except Exception as e:
+            self.logger.warning(f"从数据库获取股票名称失败: {e}")
+        finally:
+            session.close()
+        
+        # 如果数据库中没有，返回股票代码
+        return stock_code
+    
+    def _get_market_indicator_values(
+        self,
+        indicator_col: str,
+        report_date: date
+    ) -> List[float]:
+        """
+        获取全市场某个指标在指定报告期的值
+        
+        Args:
+            indicator_col: 指标列名
+            report_date: 报告日期
+            
+        Returns:
+            全市场指标值列表
+        """
+        session = self.repository.get_session()
+        try:
+            from models import BalanceSheet, IncomeStatement, CashFlowStatement
+            
+            # 根据指标类型查询不同的表
+            if indicator_col == 'ar_turnover':
+                # 应收账款周转率 = 营业收入 / 平均应收账款
+                # 简化处理：使用当期营业收入 / 当期应收账款
+                balance_data = session.query(
+                    BalanceSheet.stock_code,
+                    BalanceSheet.accounts_receivable
+                ).filter(
+                    BalanceSheet.report_date == report_date
+                ).all()
+                
+                income_data = session.query(
+                    IncomeStatement.stock_code,
+                    IncomeStatement.operating_revenue
+                ).filter(
+                    IncomeStatement.report_date == report_date
+                ).all()
+                
+                # 合并数据
+                balance_dict = {row.stock_code: row.accounts_receivable for row in balance_data}
+                
+                values = []
+                for row in income_data:
+                    ar = balance_dict.get(row.stock_code)
+                    if ar and ar > 0 and row.operating_revenue and row.operating_revenue > 0:
+                        turnover = row.operating_revenue / ar
+                        # 对周转率取对数
+                        if turnover > 0:
+                            import numpy as np
+                            turnover = np.log(turnover)
+                            values.append(turnover)
+                
+                return values
+                
+            elif indicator_col == 'lt_asset_turnover':
+                # 长期资产周转率 = 营业收入 / 长期经营资产
+                # 长期经营资产 = 非流动资产合计 - 长期股权投资 - 投资性房地产 - 递延所得税资产
+                balance_data = session.query(
+                    BalanceSheet.stock_code,
+                    BalanceSheet.non_current_assets,
+                    BalanceSheet.long_term_equity_investment,
+                    BalanceSheet.investment_property,
+                    BalanceSheet.deferred_tax_assets
+                ).filter(
+                    BalanceSheet.report_date == report_date
+                ).all()
+                
+                income_data = session.query(
+                    IncomeStatement.stock_code,
+                    IncomeStatement.operating_revenue
+                ).filter(
+                    IncomeStatement.report_date == report_date
+                ).all()
+                
+                # 计算长期经营资产
+                balance_dict = {}
+                for row in balance_data:
+                    non_current = row.non_current_assets or 0
+                    lt_equity_inv = row.long_term_equity_investment or 0
+                    inv_property = row.investment_property or 0
+                    deferred_tax = row.deferred_tax_assets or 0
+                    
+                    lt_operating_assets = max(0, non_current - lt_equity_inv - inv_property - deferred_tax)
+                    balance_dict[row.stock_code] = lt_operating_assets
+                
+                values = []
+                for row in income_data:
+                    lt_assets = balance_dict.get(row.stock_code)
+                    if lt_assets and lt_assets > 0 and row.operating_revenue and row.operating_revenue > 0:
+                        turnover = row.operating_revenue / lt_assets
+                        # 对周转率取对数
+                        if turnover > 0:
+                            import numpy as np
+                            turnover = np.log(turnover)
+                            values.append(turnover)
+                
+                return values
+                
+            elif indicator_col == 'gross_margin':
+                # 只需要利润表数据
+                income_data = session.query(
+                    IncomeStatement.stock_code,
+                    IncomeStatement.operating_revenue,
+                    IncomeStatement.operating_cost
+                ).filter(
+                    IncomeStatement.report_date == report_date
+                ).all()
+                
+                values = []
+                for row in income_data:
+                    if row.operating_revenue and row.operating_cost and row.operating_revenue > 0:
+                        margin = (row.operating_revenue - row.operating_cost) / row.operating_revenue
+                        values.append(margin)
+                
+                return values
+                
+            elif indicator_col == 'working_capital_ratio':
+                # 需要资产负债表数据
+                balance_data = session.query(
+                    BalanceSheet.stock_code,
+                    BalanceSheet.accounts_receivable,
+                    BalanceSheet.notes_receivable,
+                    BalanceSheet.receivables_financing,
+                    BalanceSheet.contract_assets,
+                    BalanceSheet.accounts_payable,
+                    BalanceSheet.notes_payable,
+                    BalanceSheet.contract_liabilities,
+                    BalanceSheet.total_assets
+                ).filter(
+                    BalanceSheet.report_date == report_date
+                ).all()
+                
+                values = []
+                for row in balance_data:
+                    if row.total_assets and row.total_assets > 0:
+                        ratio = self.calculator.calculate_working_capital_ratio(
+                            accounts_receivable=row.accounts_receivable,
+                            notes_receivable=row.notes_receivable,
+                            receivables_financing=row.receivables_financing,
+                            contract_assets=row.contract_assets,
+                            accounts_payable=row.accounts_payable,
+                            notes_payable=row.notes_payable,
+                            contract_liabilities=row.contract_liabilities,
+                            total_assets=row.total_assets
+                        )
+                        if ratio is not None:
+                            values.append(ratio)
+                
+                return values
+                
+            elif indicator_col == 'operating_cashflow_ratio':
+                # 需要现金流量表和资产负债表数据
+                cashflow_data = session.query(
+                    CashFlowStatement.stock_code,
+                    CashFlowStatement.net_operating_cash_flow
+                ).filter(
+                    CashFlowStatement.report_date == report_date
+                ).all()
+                
+                balance_data = session.query(
+                    BalanceSheet.stock_code,
+                    BalanceSheet.total_assets
+                ).filter(
+                    BalanceSheet.report_date == report_date
+                ).all()
+                
+                # 合并数据
+                balance_dict = {row.stock_code: row.total_assets for row in balance_data}
+                
+                values = []
+                for row in cashflow_data:
+                    total_assets = balance_dict.get(row.stock_code)
+                    if total_assets and total_assets > 0 and row.net_operating_cash_flow is not None:
+                        ratio = row.net_operating_cash_flow / total_assets
+                        values.append(ratio)
+                
+                return values
+            
+            return []
+            
+        finally:
+            session.close()

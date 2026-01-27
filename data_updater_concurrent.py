@@ -61,6 +61,13 @@ def process_single_stock(
     }
     
     try:
+        # 使用锁保护数据库写入（保存股票信息）
+        with db_lock:
+            try:
+                repository.save_stock_info(stock_code, stock_name)
+            except Exception as e:
+                logger.warning(f"保存股票信息失败 {stock_code}: {e}")
+        
         # 获取财务数据
         data = client.get_all_financial_data(stock_code)
         

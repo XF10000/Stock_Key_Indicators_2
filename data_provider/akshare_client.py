@@ -10,6 +10,7 @@ from typing import Optional
 from pathlib import Path
 import json
 from datetime import datetime, timedelta
+import signal
 
 
 class AkshareClient:
@@ -212,9 +213,12 @@ class AkshareClient:
         fetch_func,
         stock_code: str,
         data_type: str
-    ) -> Optional[pd.DataFrame]:
+    ) -> pd.DataFrame:
         """
-        通用的财务数据获取方法
+        通用的财务数据获取方法，带重试机制
+        
+        超时控制由外层的ThreadPoolExecutor的future.result(timeout=310)处理
+        不在这里嵌套使用ThreadPoolExecutor，避免线程池死锁
         
         Args:
             fetch_func: akshare 获取函数
@@ -229,7 +233,7 @@ class AkshareClient:
                 # 请求延迟
                 time.sleep(self.request_delay)
                 
-                # 直接调用akshare API（依赖其内部超时机制）
+                # 直接调用akshare API，超时由外层控制
                 df = fetch_func(symbol=stock_code)
                 
                 if df is not None and not df.empty:
@@ -242,7 +246,6 @@ class AkshareClient:
                 if attempt < self.retry_times - 1:
                     time.sleep(self.retry_delay)
                 else:
-                    # 最后一次尝试失败，返回 None
                     return None
         
         return None

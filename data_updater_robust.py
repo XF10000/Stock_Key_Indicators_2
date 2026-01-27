@@ -150,35 +150,47 @@ def process_single_stock(
             logger.debug(f"{stock_code} 获得数据库锁，开始保存数据...")
             save_start = time.time()
             
+            # 保存股票信息
+            try:
+                repository.save_stock_info(stock_code, stock_name)
+            except Exception as e:
+                logger.warning(f"保存股票信息失败 {stock_code}: {e}")
+            
             # 保存资产负债表
             if data['balance_sheet'] is not None:
-                logger.debug(f"{stock_code} 保存资产负债表...")
+                logger.debug(f"{stock_code} 保存资产负债表，数据形状: {data['balance_sheet'].shape}")
                 added, skipped = repository.save_balance_sheets(
                     data['balance_sheet'],
                     balance_mapping
                 )
                 records_saved += added
-                logger.debug(f"{stock_code} 资产负债表: 新增{added}条, 跳过{skipped}条")
+                logger.debug(f"{stock_code} 资产负债表: 新增{added}条, 跳过{skipped}条, 累计{records_saved}条")
+            else:
+                logger.debug(f"{stock_code} 资产负债表数据为None")
             
             # 保存利润表
             if data['income_statement'] is not None:
-                logger.debug(f"{stock_code} 保存利润表...")
+                logger.debug(f"{stock_code} 保存利润表，数据形状: {data['income_statement'].shape}")
                 added, skipped = repository.save_income_statements(
                     data['income_statement'],
                     income_mapping
                 )
                 records_saved += added
-                logger.debug(f"{stock_code} 利润表: 新增{added}条, 跳过{skipped}条")
+                logger.debug(f"{stock_code} 利润表: 新增{added}条, 跳过{skipped}条, 累计{records_saved}条")
+            else:
+                logger.debug(f"{stock_code} 利润表数据为None")
             
             # 保存现金流量表
             if data['cash_flow_statement'] is not None:
-                logger.debug(f"{stock_code} 保存现金流量表...")
+                logger.debug(f"{stock_code} 保存现金流量表，数据形状: {data['cash_flow_statement'].shape}")
                 added, skipped = repository.save_cash_flow_statements(
                     data['cash_flow_statement'],
                     cashflow_mapping
                 )
                 records_saved += added
-                logger.debug(f"{stock_code} 现金流量表: 新增{added}条, 跳过{skipped}条")
+                logger.debug(f"{stock_code} 现金流量表: 新增{added}条, 跳过{skipped}条, 累计{records_saved}条")
+            else:
+                logger.debug(f"{stock_code} 现金流量表数据为None")
             
             save_time = time.time() - save_start
             logger.debug(f"{stock_code} 数据保存完成，耗时 {save_time:.2f}秒")
@@ -343,7 +355,7 @@ def main(
                     income_mapping,
                     cashflow_mapping,
                     logger,
-                    60.0  # 60秒超时
+                    300.0  # 5分钟超时
                 ): stock_info for stock_info in batch
             }
             
@@ -352,64 +364,81 @@ def main(
             completed_count = 0
             with tqdm(total=len(futures), desc=f"批次 {batch_num}") as pbar:
                 logger.debug(f"批次 {batch_num}: tqdm已创建，开始迭代as_completed...")
-                for future in as_completed(futures):
-                    completed_count += 1
-                    logger.debug(f"批次 {batch_num}: 第 {completed_count}/{len(futures)} 个任务完成")
-                    
-                    if should_stop:
-                        logger.debug(f"批次 {batch_num}: 收到停止信号")
-                        break
-                    
-                    logger.debug(f"批次 {batch_num}: 获取future对应的stock_info...")
-                    stock_info = futures[future]
-                    logger.debug(f"批次 {batch_num}: 处理 {stock_info['market_code']} 的结果...")
-                    
-                    try:
-                        logger.debug(f"批次 {batch_num}: 调用future.result()...")
-                        result = future.result(timeout=70.0)  # 比内部超时多10秒
-                        logger.debug(f"批次 {batch_num}: future.result()返回，success={result['success']}")
+                try:
+                    for future in as_completed(futures, timeout=None):  # 不设置批次总超时，由单个任务超时控制
+                        completed_count += 1
+                        logger.debug(f"批次 {batch_num}: 第 {completed_count}/{len(futures)} 个任务完成")
                         
-                        if result['success']:
-                            logger.debug(f"批次 {batch_num}: 更新success_count...")
-                            success_count += 1
-                            total_records += result['records_saved']
-                            logger.debug(f"批次 {batch_num}: 调用mark_processed...")
-                            progress_tracker.mark_processed(result['stock_code'])
-                            logger.debug(f"批次 {batch_num}: mark_processed完成")
-                        else:
-                            logger.debug(f"批次 {batch_num}: 处理失败，调用mark_failed...")
+                        if should_stop:
+                            logger.debug(f"批次 {batch_num}: 收到停止信号")
+                            break
+                        
+                        logger.debug(f"批次 {batch_num}: 获取future对应的stock_info...")
+                        stock_info = futures[future]
+                        logger.debug(f"批次 {batch_num}: 处理 {stock_info['market_code']} 的结果...")
+                        
+                        try:
+                            logger.debug(f"批次 {batch_num}: 调用future.result()...")
+                            result = future.result(timeout=310.0)  # 5分10秒超时
+                            logger.debug(f"批次 {batch_num}: future.result()返回，success={result['success']}")
+                            
+                            if result['success']:
+                                logger.debug(f"批次 {batch_num}: 更新success_count...")
+                                success_count += 1
+                                total_records += result['records_saved']
+                                logger.debug(f"批次 {batch_num}: 调用mark_processed...")
+                                progress_tracker.mark_processed(result['stock_code'])
+                                logger.debug(f"批次 {batch_num}: mark_processed完成")
+                            else:
+                                logger.debug(f"批次 {batch_num}: 处理失败，调用mark_failed...")
+                                failed_count += 1
+                                progress_tracker.mark_failed(
+                                    result['stock_code'],
+                                    result['error']
+                                )
+                                logger.debug(f"批次 {batch_num}: mark_failed完成")
+                            
+                        except TimeoutError:
+                            failed_count += 1
+                            error_msg = "处理超时(>5分钟)"
+                            logger.error(f"✗ {stock_info['market_code']} ({stock_info['stock_name']}) 超时")
+                            progress_tracker.mark_failed(
+                                stock_info['market_code'],
+                                error_msg
+                            )
+                            # 取消超时的任务
+                            future.cancel()
+                        except Exception as e:
+                            failed_count += 1
+                            logger.error(f"✗ {stock_info['market_code']} 异常: {e}")
+                            logger.debug(f"批次 {batch_num}: 异常详情: {e}")
+                            import traceback
+                            logger.debug(f"批次 {batch_num}: 异常堆栈:\n{traceback.format_exc()}")
+                            progress_tracker.mark_failed(
+                                stock_info['market_code'],
+                                str(e)
+                            )
+                        
+                        logger.debug(f"批次 {batch_num}: 更新pbar...")
+                        pbar.update(1)
+                        pbar.set_description(
+                            f"批次 {batch_num} [成功:{success_count} 失败:{failed_count}]"
+                        )
+                        logger.debug(f"批次 {batch_num}: pbar更新完成，准备处理下一个future...")
+                
+                except TimeoutError:
+                    # as_completed本身超时（理论上不会发生，因为我们设置了timeout=None）
+                    logger.error(f"批次 {batch_num}: as_completed超时")
+                    # 取消所有未完成的任务
+                    for future in futures:
+                        if not future.done():
+                            future.cancel()
+                            stock_info = futures[future]
                             failed_count += 1
                             progress_tracker.mark_failed(
-                                result['stock_code'],
-                                result['error']
+                                stock_info['market_code'],
+                                "批次超时"
                             )
-                            logger.debug(f"批次 {batch_num}: mark_failed完成")
-                        
-                    except TimeoutError:
-                        failed_count += 1
-                        error_msg = "处理超时"
-                        logger.error(f"✗ {stock_info['market_code']} 超时")
-                        progress_tracker.mark_failed(
-                            stock_info['market_code'],
-                            error_msg
-                        )
-                    except Exception as e:
-                        failed_count += 1
-                        logger.error(f"✗ {stock_info['market_code']} 异常: {e}")
-                        logger.debug(f"批次 {batch_num}: 异常详情: {e}")
-                        import traceback
-                        logger.debug(f"批次 {batch_num}: 异常堆栈:\n{traceback.format_exc()}")
-                        progress_tracker.mark_failed(
-                            stock_info['market_code'],
-                            str(e)
-                        )
-                    
-                    logger.debug(f"批次 {batch_num}: 更新pbar...")
-                    pbar.update(1)
-                    pbar.set_description(
-                        f"批次 {batch_num} [成功:{success_count} 失败:{failed_count}]"
-                    )
-                    logger.debug(f"批次 {batch_num}: pbar更新完成，准备处理下一个future...")
                 
                 logger.debug(f"批次 {batch_num}: as_completed循环结束")
         

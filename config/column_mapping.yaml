@@ -51,6 +51,16 @@ balance_sheet:
   "资产总计": "total_assets"
   "资产总额": "total_assets"
   "TOTAL_ASSETS": "total_assets"
+  "TOTAL_ASSET": "total_assets"
+  
+  # 流动资产合计（akshare英文）
+  "TOTAL_CURRENT_ASSETS": "current_assets"
+  
+  # 非流动资产合计（akshare英文）
+  "TOTAL_NONCURRENT_ASSETS": "non_current_assets"
+  
+  # 存货（akshare英文）
+  "INVENTORY": "inventories"
   
   # 负债类（中文）
   "短期借款": "short_term_borrowings"
@@ -88,6 +98,13 @@ balance_sheet:
   
   "负债合计": "total_liabilities"
   "TOTAL_LIAB": "total_liabilities"
+  "TOTAL_LIABILITIES": "total_liabilities"
+  
+  # 流动负债合计（akshare英文）
+  "TOTAL_CURRENT_LIAB": "current_liabilities"
+  
+  # 非流动负债合计（akshare英文）
+  "TOTAL_NONCURRENT_LIAB": "non_current_liabilities"
   
   # 所有者权益类（中文）
   "股本": "share_capital"
@@ -114,11 +131,16 @@ balance_sheet:
 
 # 利润表列名映射
 income_statement:
-  # 收入类
+  # 收入类（中文）
   "营业总收入": "total_operating_revenue"
   "营业收入": "operating_revenue"
   
-  # 成本费用类
+  # 收入类（akshare英文）
+  "TOTAL_OPERATE_INCOME": "total_operating_revenue"
+  "OPERATE_INCOME": "operating_revenue"
+  "INTEREST_INCOME": "interest_income"
+  
+  # 成本费用类（中文）
   "营业总成本": "total_operating_cost"
   "营业成本": "operating_cost"
   "税金及附加": "taxes_and_surcharges"
@@ -130,74 +152,138 @@ income_statement:
   "利息费用": "interest_expense"
   "利息收入": "interest_income"
   
-  # 损益类
+  # 成本费用类（akshare英文）
+  "TOTAL_OPERATE_COST": "total_operating_cost"
+  "OPERATE_COST": "operating_cost"
+  "OPERATE_TAX_ADD": "taxes_and_surcharges"
+  "SALES_FEE": "selling_expenses"
+  "MANAGE_FEE": "administrative_expenses"
+  "RESEARCH_FEE": "rd_expenses"
+  "FINANCE_FEE": "financial_expenses"
+  "FE_INTEREST_FEE": "interest_expense"
+  "FE_INTEREST_INCOME": "interest_income"
+  
+  # 损益类（中文）
   "投资收益": "investment_income"
   "公允价值变动收益": "fair_value_change_income"
   "资产处置收益": "asset_disposal_income"
   "其他收益": "other_income"
   "营业利润": "operating_profit"
-  
   "营业外收入": "non_operating_income"
   "营业外支出": "non_operating_expenses"
-  
   "利润总额": "total_profit"
   "所得税费用": "income_tax_expense"
   "净利润": "net_profit"
   
-  # 每股收益
+  # 损益类（akshare英文）
+  "INVEST_INCOME": "investment_income"
+  "FAIRVALUE_CHANGE_INCOME": "fair_value_change_income"
+  "ASSET_DISPOSAL_INCOME": "asset_disposal_income"
+  "OTHER_INCOME": "other_income"
+  "OPERATE_PROFIT": "operating_profit"
+  "NONBUSINESS_INCOME": "non_operating_income"
+  "NONBUSINESS_EXPENSE": "non_operating_expenses"
+  "TOTAL_PROFIT": "total_profit"
+  "INCOME_TAX": "income_tax_expense"
+  "NETPROFIT": "net_profit"
+  "PARENT_NETPROFIT": "net_profit"
+  
+  # 每股收益（中文）
   "基本每股收益": "basic_eps"
   "稀释每股收益": "diluted_eps"
+  
+  # 每股收益（akshare英文）
+  "BASIC_EPS": "basic_eps"
+  "DILUTED_EPS": "diluted_eps"
 
 # 现金流量表列名映射
 cash_flow_statement:
-  # 经营活动现金流
+  # 经营活动现金流（中文）
   "销售商品、提供劳务收到的现金": "goods_sale_cash_received"
   "收到的税费返还": "tax_refund_received"
   "收到其他与经营活动有关的现金": "other_operating_cash_received"
   "经营活动现金流入小计": "operating_cash_inflow"
-  
   "购买商品、接受劳务支付的现金": "goods_purchase_cash_paid"
   "支付给职工以及为职工支付的现金": "employee_cash_paid"
   "支付的各项税费": "taxes_paid"
   "支付其他与经营活动有关的现金": "other_operating_cash_paid"
   "经营活动现金流出小计": "operating_cash_outflow"
-  
   "经营活动产生的现金流量净额": "net_operating_cash_flow"
   
-  # 投资活动现金流
+  # 经营活动现金流（akshare英文）
+  "SALES_SERVICES": "goods_sale_cash_received"
+  "RECEIVE_TAX_REFUND": "tax_refund_received"
+  "RECEIVE_OTHER_OPERATE": "other_operating_cash_received"
+  "TOTAL_OPERATE_INFLOW": "operating_cash_inflow"
+  "BUY_SERVICES": "goods_purchase_cash_paid"
+  "PAY_STAFF_CASH": "employee_cash_paid"
+  "PAY_ALL_TAX": "taxes_paid"
+  "PAY_OTHER_OPERATE": "other_operating_cash_paid"
+  "TOTAL_OPERATE_OUTFLOW": "operating_cash_outflow"
+  "NETCASH_OPERATE": "net_operating_cash_flow"
+  
+  # 投资活动现金流（中文）
   "收回投资收到的现金": "investment_withdrawal_cash"
   "取得投资收益收到的现金": "investment_income_cash"
   "处置固定资产、无形资产和其他长期资产收回的现金净额": "fixed_assets_disposal_cash"
   "收到其他与投资活动有关的现金": "other_investing_cash_received"
   "投资活动现金流入小计": "investing_cash_inflow"
-  
   "购建固定资产、无形资产和其他长期资产支付的现金": "fixed_assets_purchase_cash"
   "投资支付的现金": "investment_cash_paid"
   "支付其他与投资活动有关的现金": "other_investing_cash_paid"
   "投资活动现金流出小计": "investing_cash_outflow"
-  
   "投资活动产生的现金流量净额": "net_investing_cash_flow"
   
-  # 筹资活动现金流
+  # 投资活动现金流（akshare英文）
+  "WITHDRAW_INVEST": "investment_withdrawal_cash"
+  "RECEIVE_INVEST_INCOME": "investment_income_cash"
+  "DISPOSAL_LONG_ASSET": "fixed_assets_disposal_cash"
+  "RECEIVE_OTHER_INVEST": "other_investing_cash_received"
+  "TOTAL_INVEST_INFLOW": "investing_cash_inflow"
+  "CONSTRUCT_LONG_ASSET": "fixed_assets_purchase_cash"
+  "INVEST_PAY_CASH": "investment_cash_paid"
+  "PAY_OTHER_INVEST": "other_investing_cash_paid"
+  "TOTAL_INVEST_OUTFLOW": "investing_cash_outflow"
+  "NETCASH_INVEST": "net_investing_cash_flow"
+  
+  # 筹资活动现金流（中文）
   "吸收投资收到的现金": "capital_received"
   "取得借款收到的现金": "borrowing_cash_received"
   "收到其他与筹资活动有关的现金": "other_financing_cash_received"
   "筹资活动现金流入小计": "financing_cash_inflow"
-  
   "偿还债务支付的现金": "debt_repayment_cash"
   "分配股利、利润或偿付利息支付的现金": "dividend_cash_paid"
   "支付其他与筹资活动有关的现金": "other_financing_cash_paid"
   "筹资活动现金流出小计": "financing_cash_outflow"
-  
   "筹资活动产生的现金流量净额": "net_financing_cash_flow"
   
-  # 汇率变动影响
+  # 筹资活动现金流（akshare英文）
+  "ACCEPT_INVEST_CASH": "capital_received"
+  "RECEIVE_LOAN_CASH": "borrowing_cash_received"
+  "RECEIVE_OTHER_FINANCE": "other_financing_cash_received"
+  "TOTAL_FINANCE_INFLOW": "financing_cash_inflow"
+  "PAY_DEBT_CASH": "debt_repayment_cash"
+  "ASSIGN_DIVIDEND_PORFIT": "dividend_cash_paid"
+  "PAY_OTHER_FINANCE": "other_financing_cash_paid"
+  "TOTAL_FINANCE_OUTFLOW": "financing_cash_outflow"
+  "NETCASH_FINANCE": "net_financing_cash_flow"
+  
+  # 汇率变动影响（中文）
   "汇率变动对现金及现金等价物的影响": "exchange_rate_effect"
   
-  # 现金净增加额
+  # 汇率变动影响（akshare英文）
+  "RATE_CHANGE_EFFECT": "exchange_rate_effect"
+  
+  # 现金净增加额（中文）
   "现金及现金等价物净增加额": "net_cash_increase"
   "期初现金及现金等价物余额": "cash_beginning"
   "期末现金及现金等价物余额": "cash_ending"
+  
+  # 现金净增加额（akshare英文）
+  "CCE_ADD": "net_cash_increase"
+  "CCE_ADD_BALANCE": "net_cash_increase"
+  "BEGIN_CCE": "cash_beginning"
+  "END_CCE": "cash_ending"
 
 # 通用字段映射
 common:
