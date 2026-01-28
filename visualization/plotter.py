@@ -90,6 +90,23 @@ class Plotter:
         else:
             indicators['is_ttm'] = False
         
+        # 找到所有指标中最晚的起始年份（即所有指标都有数据的起始年份）
+        indicator_columns = ['ar_turnover', 'gross_margin', 'lt_asset_turnover', 
+                            'working_capital_ratio', 'operating_cashflow_ratio']
+        
+        # 对每个指标，找到第一个非NaN值的日期
+        earliest_valid_dates = []
+        for col in indicator_columns:
+            valid_data = indicators[indicators[col].notna()]
+            if len(valid_data) > 0:
+                earliest_valid_dates.append(valid_data['report_date'].min())
+        
+        # 取最晚的起始日期作为统一的起始日期
+        if earliest_valid_dates:
+            unified_start_date = max(earliest_valid_dates)
+            # 过滤数据，只保留统一起始日期之后的数据
+            indicators = indicators[indicators['report_date'] >= unified_start_date].copy()
+        
         # HTML头部
         html = f"""
 <!DOCTYPE html>
@@ -318,13 +335,16 @@ class Plotter:
         <div class="footer">
             <p>报告生成时间：{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
             <p>数据来源：东方财富 (akshare)</p>
+            <p style="color: #999; font-size: 12px; margin-top: 10px;">
+                <strong>使用提示：</strong>所有图表的X轴（时间轴）已联动，在任意图表上缩放X轴时，其他图表会自动同步。
+                您也可以独立调整每个图表的Y轴范围。双击图表可恢复初始视图。
+            </p>
         </div>
     </div>
     
     <script>
     // X轴联动缩放功能
     document.addEventListener('DOMContentLoaded', function() {{
-        // 获取所有Plotly图表的div元素
         const allDivs = document.querySelectorAll('.plotly-graph-div');
         let isUpdating = false;
         
