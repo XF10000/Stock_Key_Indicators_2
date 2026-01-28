@@ -108,6 +108,14 @@ class Plotter:
             # 过滤数据，只保留统一起始日期之后的数据
             # 这样所有图表都会有相同的X轴范围，中间年份的NaN会在图表中自动断开连线
             indicators = indicators[indicators['report_date'] >= unified_start_date].copy()
+            
+            # 同时过滤市场对比数据，确保市场中位数图表也从相同年份开始
+            for key in list(market_comparison.keys()):
+                if market_comparison[key] is not None and isinstance(market_comparison[key], pd.DataFrame):
+                    if len(market_comparison[key]) > 0 and 'report_date' in market_comparison[key].columns:
+                        market_comparison[key] = market_comparison[key][
+                            pd.to_datetime(market_comparison[key]['report_date']) >= unified_start_date
+                        ].copy()
         
         # HTML头部
         html = f"""
