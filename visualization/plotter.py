@@ -320,6 +320,50 @@ class Plotter:
             <p>数据来源：东方财富 (akshare)</p>
         </div>
     </div>
+    
+    <script>
+    // X轴联动缩放功能
+    document.addEventListener('DOMContentLoaded', function() {{
+        // 获取所有Plotly图表的div元素
+        const allDivs = document.querySelectorAll('.plotly-graph-div');
+        let isUpdating = false;
+        
+        // 为每个图表添加relayout事件监听
+        allDivs.forEach(function(div) {{
+            div.on('plotly_relayout', function(eventData) {{
+                if (isUpdating) return;
+                
+                // 检查是否是X轴范围变化
+                if (eventData['xaxis.range[0]'] !== undefined && eventData['xaxis.range[1]'] !== undefined) {{
+                    isUpdating = true;
+                    const xRange = [eventData['xaxis.range[0]'], eventData['xaxis.range[1]']];
+                    
+                    // 同步到所有其他图表
+                    allDivs.forEach(function(otherDiv) {{
+                        if (otherDiv !== div) {{
+                            Plotly.relayout(otherDiv, {{
+                                'xaxis.range': xRange
+                            }});
+                        }}
+                    }});
+                    
+                    setTimeout(function() {{ isUpdating = false; }}, 100);
+                }} else if (eventData['xaxis.autorange'] === true) {{
+                    // 同步自动缩放
+                    isUpdating = true;
+                    allDivs.forEach(function(otherDiv) {{
+                        if (otherDiv !== div) {{
+                            Plotly.relayout(otherDiv, {{
+                                'xaxis.autorange': true
+                            }});
+                        }}
+                    }});
+                    setTimeout(function() {{ isUpdating = false; }}, 100);
+                }}
+            }});
+        }});
+    }});
+    </script>
 </body>
 </html>
 """
