@@ -462,6 +462,10 @@ class Plotter:
                 
                 median_data = median_data.merge(gm_median, on='report_date', how='inner')
                 
+                # 对齐到公司数据的完整日期列表，为缺失年份填充None
+                full_dates = ar_data[['report_date']].copy()
+                median_data = full_dates.merge(median_data, on='report_date', how='left')
+                
                 if len(median_data) > 0:
                     chart2 = self._create_dual_indicator_chart(
                         median_data, 'ar_median', 'gm_median',
@@ -488,8 +492,12 @@ class Plotter:
             ar_comp_annual = ar_comp_annual[is_year_end | is_latest]
             
             if len(ar_comp_annual) > 0:
+                # 对齐到公司数据的完整日期列表，为缺失年份填充None
+                full_dates = ar_data[['report_date']].copy()
+                ar_comp_aligned = full_dates.merge(ar_comp_annual, on='report_date', how='left')
+                
                 chart3 = self._create_percentile_chart(
-                    ar_comp_annual, '应收账款周转率对数', 'ar_turnover'
+                    ar_comp_aligned, '应收账款周转率对数', 'ar_turnover'
                 )
                 html += f'<div class="chart-container">{chart3}</div>'
             else:
@@ -542,8 +550,8 @@ class Plotter:
                 if unit == '%':
                     median_data['market_median'] = median_data['market_median'] * 100
                 
-                # 合并公司数据和市场中位数数据
-                merged_data = valid_data.merge(median_data, on='report_date', how='outer')
+                # 对齐到公司数据的完整日期列表，为缺失年份填充None
+                merged_data = valid_data.merge(median_data, on='report_date', how='left')
                 merged_data = merged_data.sort_values('report_date')
                 
                 # 创建双线图表
@@ -577,8 +585,12 @@ class Plotter:
             percentile_data = percentile_data[is_year_end | is_latest]
             
             if len(percentile_data) > 0:
+                # 对齐到公司数据的完整日期列表，为缺失年份填充None
+                full_dates = valid_data[['report_date']].copy()
+                percentile_aligned = full_dates.merge(percentile_data, on='report_date', how='left')
+                
                 chart3 = self._create_percentile_chart(
-                    percentile_data, indicator_name, column_name
+                    percentile_aligned, indicator_name, column_name
                 )
                 html += f'<div class="chart-container">{chart3}</div>'
             else:
