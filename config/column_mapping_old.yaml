@@ -1,0 +1,298 @@
+# 财务报表列名映射配置文件
+# 用于将从 akshare API 获取的原始列名映射到内部标准名称
+# 在原型验证阶段（阶段1）会根据实际数据补充完善此文件
+
+# 资产负债表列名映射
+balance_sheet:
+  # 资产类（中文）
+  "货币资金": "monetary_capital"
+  "交易性金融资产": "trading_assets"
+  "应收票据": "notes_receivable"
+  "应收账款": "accounts_receivable"
+  "应收款项融资": "receivables_financing"
+  "预付款项": "prepayments"
+  "其他应收款": "other_receivables"
+  "存货": "inventories"
+  "合同资产": "contract_assets"
+  "流动资产合计": "current_assets"
+  
+  # 资产类（akshare英文）
+  "MONETARYFUNDS": "monetary_capital"
+  "TRADABLE_FNNCL_ASSETS": "trading_assets"
+  "NOTE_RECE": "notes_receivable"
+  "ACCOUNTS_RECE": "accounts_receivable"
+  "FINANCE_RECE": "receivables_financing"
+  "PREPAYMENT": "prepayments"
+  "OTHER_RECE": "other_receivables"
+  "INVENTORIES": "inventories"
+  "CONTRACT_ASSET": "contract_assets"
+  "TOTAL_CURRENT_ASSETS": "current_assets"
+  
+  "长期股权投资": "long_term_equity_investment"
+  "投资性房地产": "investment_property"
+  "固定资产": "fixed_assets"
+  "在建工程": "construction_in_progress"
+  "无形资产": "intangible_assets"
+  "商誉": "goodwill"
+  "长期待摊费用": "long_term_deferred_expenses"
+  "递延所得税资产": "deferred_tax_assets"
+  "非流动资产合计": "non_current_assets"
+  
+  "LONG_TERM_EQUITY_INVEST": "long_term_equity_investment"
+  "INVEST_REAL_ESTATE": "investment_property"
+  "FIXED_ASSETS": "fixed_assets"
+  "CIP": "construction_in_progress"
+  "INTANGIBLE_ASSETS": "intangible_assets"
+  "GOODWILL": "goodwill"
+  "LONG_DEFERRED_EXPENSE": "long_term_deferred_expenses"
+  "DEFER_TAX_ASSETS": "deferred_tax_assets"
+  "TOTAL_NONCURRENT_ASSETS": "non_current_assets"
+  
+  "资产总计": "total_assets"
+  "资产总额": "total_assets"
+  "TOTAL_ASSETS": "total_assets"
+  "TOTAL_ASSET": "total_assets"
+  
+  # 流动资产合计（akshare英文）
+  "TOTAL_CURRENT_ASSETS": "current_assets"
+  
+  # 非流动资产合计（akshare英文）
+  "TOTAL_NONCURRENT_ASSETS": "non_current_assets"
+  
+  # 存货（akshare英文）
+  "INVENTORY": "inventories"
+  
+  # 负债类（中文）
+  "短期借款": "short_term_borrowings"
+  "交易性金融负债": "trading_liabilities"
+  "应付票据": "notes_payable"
+  "应付账款": "accounts_payable"
+  "合同负债": "contract_liabilities"
+  "应付职工薪酬": "employee_benefits_payable"
+  "应交税费": "taxes_payable"
+  "其他应付款": "other_payables"
+  "流动负债合计": "current_liabilities"
+  
+  # 负债类（akshare英文）
+  "SHORT_TERM_LOAN": "short_term_borrowings"
+  "TRADABLE_FNNCL_LIAB": "trading_liabilities"
+  "NOTE_PAYABLE": "notes_payable"
+  "ACCOUNTS_PAYABLE": "accounts_payable"
+  "CONTRACT_LIAB": "contract_liabilities"
+  "EMPL_BEN_PAYABLE": "employee_benefits_payable"
+  "TAX_PAYABLE": "taxes_payable"
+  "OTHER_PAYABLE": "other_payables"
+  "TOTAL_CURRENT_LIAB": "current_liabilities"
+  
+  "长期借款": "long_term_borrowings"
+  "应付债券": "bonds_payable"
+  "长期应付款": "long_term_payables"
+  "递延所得税负债": "deferred_tax_liabilities"
+  "非流动负债合计": "non_current_liabilities"
+  
+  "LONG_TERM_LOAN": "long_term_borrowings"
+  "BOND_PAYABLE": "bonds_payable"
+  "LONG_TERM_PAYABLE": "long_term_payables"
+  "DEFER_TAX_LIAB": "deferred_tax_liabilities"
+  "TOTAL_NONCURRENT_LIAB": "non_current_liabilities"
+  
+  "负债合计": "total_liabilities"
+  "TOTAL_LIAB": "total_liabilities"
+  "TOTAL_LIABILITIES": "total_liabilities"
+  
+  # 流动负债合计（akshare英文）
+  "TOTAL_CURRENT_LIAB": "current_liabilities"
+  
+  # 非流动负债合计（akshare英文）
+  "TOTAL_NONCURRENT_LIAB": "non_current_liabilities"
+  
+  # 所有者权益类（中文）
+  "股本": "share_capital"
+  "实收资本(或股本)": "share_capital"
+  "资本公积": "capital_reserve"
+  "库存股": "treasury_stock"
+  "盈余公积": "surplus_reserve"
+  "未分配利润": "retained_earnings"
+  "所有者权益合计": "total_equity"
+  "股东权益合计": "total_equity"
+  
+  # 所有者权益类（akshare英文）
+  "SHARE_CAPITAL": "share_capital"
+  "CAPITAL_RESERVE": "capital_reserve"
+  "TREASURY_STOCK": "treasury_stock"
+  "SURPLUS_RESERVE": "surplus_reserve"
+  "UNASSIGN_RPOFIT": "retained_earnings"
+  "TOTAL_EQUITY": "total_equity"
+  "TOTAL_PARENT_EQUITY": "total_equity"
+  
+  "负债和所有者权益总计": "total_liabilities_and_equity"
+  "负债和股东权益总计": "total_liabilities_and_equity"
+  "TOTAL_LIAB_AND_EQUITY": "total_liabilities_and_equity"
+
+# 利润表列名映射
+income_statement:
+  # 收入类（中文）
+  "营业总收入": "total_operating_revenue"
+  "营业收入": "operating_revenue"
+  
+  # 收入类（akshare英文）
+  "TOTAL_OPERATE_INCOME": "total_operating_revenue"
+  "OPERATE_INCOME": "operating_revenue"
+  "INTEREST_INCOME": "interest_income"
+  
+  # 成本费用类（中文）
+  "营业总成本": "total_operating_cost"
+  "营业成本": "operating_cost"
+  "税金及附加": "taxes_and_surcharges"
+  "销售费用": "selling_expenses"
+  "管理费用": "administrative_expenses"
+  "研发费用": "rd_expenses"
+  "研发支出": "rd_expenses"
+  "财务费用": "financial_expenses"
+  "利息费用": "interest_expense"
+  "利息收入": "interest_income"
+  
+  # 成本费用类（akshare英文）
+  "TOTAL_OPERATE_COST": "total_operating_cost"
+  "OPERATE_COST": "operating_cost"
+  "OPERATE_TAX_ADD": "taxes_and_surcharges"
+  "SALES_FEE": "selling_expenses"
+  "MANAGE_FEE": "administrative_expenses"
+  "RESEARCH_FEE": "rd_expenses"
+  "FINANCE_FEE": "financial_expenses"
+  "FE_INTEREST_FEE": "interest_expense"
+  "FE_INTEREST_INCOME": "interest_income"
+  
+  # 损益类（中文）
+  "投资收益": "investment_income"
+  "公允价值变动收益": "fair_value_change_income"
+  "资产处置收益": "asset_disposal_income"
+  "其他收益": "other_income"
+  "营业利润": "operating_profit"
+  "营业外收入": "non_operating_income"
+  "营业外支出": "non_operating_expenses"
+  "利润总额": "total_profit"
+  "所得税费用": "income_tax_expense"
+  "净利润": "net_profit"
+  
+  # 损益类（akshare英文）
+  "INVEST_INCOME": "investment_income"
+  "FAIRVALUE_CHANGE_INCOME": "fair_value_change_income"
+  "ASSET_DISPOSAL_INCOME": "asset_disposal_income"
+  "OTHER_INCOME": "other_income"
+  "OPERATE_PROFIT": "operating_profit"
+  "NONBUSINESS_INCOME": "non_operating_income"
+  "NONBUSINESS_EXPENSE": "non_operating_expenses"
+  "TOTAL_PROFIT": "total_profit"
+  "INCOME_TAX": "income_tax_expense"
+  "NETPROFIT": "net_profit"
+  "PARENT_NETPROFIT": "net_profit"
+  
+  # 每股收益（中文）
+  "基本每股收益": "basic_eps"
+  "稀释每股收益": "diluted_eps"
+  
+  # 每股收益（akshare英文）
+  "BASIC_EPS": "basic_eps"
+  "DILUTED_EPS": "diluted_eps"
+
+# 现金流量表列名映射
+cash_flow_statement:
+  # 经营活动现金流（中文）
+  "销售商品、提供劳务收到的现金": "goods_sale_cash_received"
+  "收到的税费返还": "tax_refund_received"
+  "收到其他与经营活动有关的现金": "other_operating_cash_received"
+  "经营活动现金流入小计": "operating_cash_inflow"
+  "购买商品、接受劳务支付的现金": "goods_purchase_cash_paid"
+  "支付给职工以及为职工支付的现金": "employee_cash_paid"
+  "支付的各项税费": "taxes_paid"
+  "支付其他与经营活动有关的现金": "other_operating_cash_paid"
+  "经营活动现金流出小计": "operating_cash_outflow"
+  "经营活动产生的现金流量净额": "net_operating_cash_flow"
+  
+  # 经营活动现金流（akshare英文）
+  "SALES_SERVICES": "goods_sale_cash_received"
+  "RECEIVE_TAX_REFUND": "tax_refund_received"
+  "RECEIVE_OTHER_OPERATE": "other_operating_cash_received"
+  "TOTAL_OPERATE_INFLOW": "operating_cash_inflow"
+  "BUY_SERVICES": "goods_purchase_cash_paid"
+  "PAY_STAFF_CASH": "employee_cash_paid"
+  "PAY_ALL_TAX": "taxes_paid"
+  "PAY_OTHER_OPERATE": "other_operating_cash_paid"
+  "TOTAL_OPERATE_OUTFLOW": "operating_cash_outflow"
+  "NETCASH_OPERATE": "net_operating_cash_flow"
+  
+  # 投资活动现金流（中文）
+  "收回投资收到的现金": "investment_withdrawal_cash"
+  "取得投资收益收到的现金": "investment_income_cash"
+  "处置固定资产、无形资产和其他长期资产收回的现金净额": "fixed_assets_disposal_cash"
+  "收到其他与投资活动有关的现金": "other_investing_cash_received"
+  "投资活动现金流入小计": "investing_cash_inflow"
+  "购建固定资产、无形资产和其他长期资产支付的现金": "fixed_assets_purchase_cash"
+  "投资支付的现金": "investment_cash_paid"
+  "支付其他与投资活动有关的现金": "other_investing_cash_paid"
+  "投资活动现金流出小计": "investing_cash_outflow"
+  "投资活动产生的现金流量净额": "net_investing_cash_flow"
+  
+  # 投资活动现金流（akshare英文）
+  "WITHDRAW_INVEST": "investment_withdrawal_cash"
+  "RECEIVE_INVEST_INCOME": "investment_income_cash"
+  "DISPOSAL_LONG_ASSET": "fixed_assets_disposal_cash"
+  "RECEIVE_OTHER_INVEST": "other_investing_cash_received"
+  "TOTAL_INVEST_INFLOW": "investing_cash_inflow"
+  "CONSTRUCT_LONG_ASSET": "fixed_assets_purchase_cash"
+  "INVEST_PAY_CASH": "investment_cash_paid"
+  "PAY_OTHER_INVEST": "other_investing_cash_paid"
+  "TOTAL_INVEST_OUTFLOW": "investing_cash_outflow"
+  "NETCASH_INVEST": "net_investing_cash_flow"
+  
+  # 筹资活动现金流（中文）
+  "吸收投资收到的现金": "capital_received"
+  "取得借款收到的现金": "borrowing_cash_received"
+  "收到其他与筹资活动有关的现金": "other_financing_cash_received"
+  "筹资活动现金流入小计": "financing_cash_inflow"
+  "偿还债务支付的现金": "debt_repayment_cash"
+  "分配股利、利润或偿付利息支付的现金": "dividend_cash_paid"
+  "支付其他与筹资活动有关的现金": "other_financing_cash_paid"
+  "筹资活动现金流出小计": "financing_cash_outflow"
+  "筹资活动产生的现金流量净额": "net_financing_cash_flow"
+  
+  # 筹资活动现金流（akshare英文）
+  "ACCEPT_INVEST_CASH": "capital_received"
+  "RECEIVE_LOAN_CASH": "borrowing_cash_received"
+  "RECEIVE_OTHER_FINANCE": "other_financing_cash_received"
+  "TOTAL_FINANCE_INFLOW": "financing_cash_inflow"
+  "PAY_DEBT_CASH": "debt_repayment_cash"
+  "ASSIGN_DIVIDEND_PORFIT": "dividend_cash_paid"
+  "PAY_OTHER_FINANCE": "other_financing_cash_paid"
+  "TOTAL_FINANCE_OUTFLOW": "financing_cash_outflow"
+  "NETCASH_FINANCE": "net_financing_cash_flow"
+  
+  # 汇率变动影响（中文）
+  "汇率变动对现金及现金等价物的影响": "exchange_rate_effect"
+  
+  # 汇率变动影响（akshare英文）
+  "RATE_CHANGE_EFFECT": "exchange_rate_effect"
+  
+  # 现金净增加额（中文）
+  "现金及现金等价物净增加额": "net_cash_increase"
+  "期初现金及现金等价物余额": "cash_beginning"
+  "期末现金及现金等价物余额": "cash_ending"
+  
+  # 现金净增加额（akshare英文）
+  "CCE_ADD": "net_cash_increase"
+  "CCE_ADD_BALANCE": "net_cash_increase"
+  "BEGIN_CCE": "cash_beginning"
+  "END_CCE": "cash_ending"
+
+# 通用字段映射
+common:
+  # 中文列名
+  "股票代码": "stock_code"
+  "报告日期": "report_date"
+  "公告日期": "announcement_date"
+  
+  # akshare 英文列名（东方财富接口）
+  "SECURITY_CODE": "stock_code"
+  "REPORT_DATE": "report_date"
+  "NOTICE_DATE": "announcement_date"
