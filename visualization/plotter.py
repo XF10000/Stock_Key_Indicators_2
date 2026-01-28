@@ -90,7 +90,8 @@ class Plotter:
         else:
             indicators['is_ttm'] = False
         
-        # 找到所有指标中最晚的起始年份（即所有指标都有数据的起始年份）
+        # 找到所有指标中最早的起始年份，确保所有图表使用相同的年份范围
+        # 注意：不过滤NaN值，保持数据的完整性，NaN在图表中会自动断开连线
         indicator_columns = ['ar_turnover', 'gross_margin', 'lt_asset_turnover', 
                             'working_capital_ratio', 'operating_cashflow_ratio']
         
@@ -101,10 +102,11 @@ class Plotter:
             if len(valid_data) > 0:
                 earliest_valid_dates.append(valid_data['report_date'].min())
         
-        # 取最晚的起始日期作为统一的起始日期
+        # 取最晚的起始日期作为统一的起始日期（确保所有图表从所有指标都开始有数据的年份开始）
         if earliest_valid_dates:
             unified_start_date = max(earliest_valid_dates)
             # 过滤数据，只保留统一起始日期之后的数据
+            # 这样所有图表都会有相同的X轴范围，中间年份的NaN会在图表中自动断开连线
             indicators = indicators[indicators['report_date'] >= unified_start_date].copy()
         
         # HTML头部
@@ -403,7 +405,7 @@ class Plotter:
         
         # 准备数据（已经是年度数据）
         ar_data = indicators[['report_date', 'ar_turnover', 'gross_margin']].copy()
-        ar_data = ar_data[ar_data['ar_turnover'].notna() & ar_data['gross_margin'].notna()]
+        # 不过滤NaN值，保留所有年份以确保X轴一致，NaN会在图表中自动断开连线
         
         if len(ar_data) == 0:
             return '<p style="color: #999; font-style: italic;">暂无数据</p>'
@@ -505,7 +507,7 @@ class Plotter:
         
         # 准备数据（已经是年度数据）
         valid_data = indicators[['report_date', column_name]].copy()
-        valid_data = valid_data[valid_data[column_name].notna()]
+        # 不过滤NaN值，保留所有年份以确保X轴一致，NaN会在图表中自动断开连线
         
         if len(valid_data) == 0:
             return '<p style="color: #999; font-style: italic;">暂无数据</p>'
