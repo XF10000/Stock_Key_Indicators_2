@@ -585,7 +585,13 @@ class Plotter:
                 x=0.5,
                 font=dict(size=11)
             ),
-            margin=dict(l=60, r=60, t=40, b=80)
+            margin=dict(l=60, r=60, t=40, b=80),
+            dragmode='zoom',  # 启用拖拽缩放
+            modebar=dict(
+                orientation='v',
+                bgcolor='rgba(255,255,255,0.7)',
+                activecolor='#C41E3A'
+            )
         )
         
         # 设置X轴
@@ -611,7 +617,8 @@ class Plotter:
             linewidth=1,
             linecolor='#E0E0E0',
             title_font=dict(color='#C41E3A', size=11),
-            tickfont=dict(color='#C41E3A', size=10)
+            tickfont=dict(color='#C41E3A', size=10),
+            fixedrange=False  # 允许用户调整Y轴范围
         )
         
         # 设置右Y轴
@@ -623,7 +630,8 @@ class Plotter:
             linewidth=1,
             linecolor='#E0E0E0',
             title_font=dict(color='#F5A623', size=11),
-            tickfont=dict(color='#F5A623', size=10)
+            tickfont=dict(color='#F5A623', size=10),
+            fixedrange=False  # 允许用户调整Y轴范围
         )
         
         return fig.to_html(full_html=False, include_plotlyjs=False)
@@ -671,7 +679,13 @@ class Plotter:
             height=400,
             font=dict(family="Microsoft YaHei, SimHei, Arial", size=12),
             margin=dict(l=60, r=60, t=40, b=80),
-            showlegend=False
+            showlegend=False,
+            dragmode='zoom',  # 启用拖拽缩放
+            modebar=dict(
+                orientation='v',
+                bgcolor='rgba(255,255,255,0.7)',
+                activecolor='#C41E3A'
+            )
         )
         
         fig.update_xaxes(
@@ -763,7 +777,13 @@ class Plotter:
                 font=dict(size=11)
             ),
             margin=dict(l=60, r=60, t=40, b=80),
-            showlegend=True
+            showlegend=True,
+            dragmode='zoom',  # 启用拖拽缩放
+            modebar=dict(
+                orientation='v',
+                bgcolor='rgba(255,255,255,0.7)',
+                activecolor='#C41E3A'
+            )
         )
         
         fig.update_xaxes(
@@ -785,7 +805,8 @@ class Plotter:
             showline=True,
             linewidth=1,
             linecolor='#E0E0E0',
-            tickfont=dict(size=10)
+            tickfont=dict(size=10),
+            fixedrange=False  # 允许用户调整Y轴范围
         )
         
         return fig.to_html(full_html=False, include_plotlyjs=False)
@@ -842,8 +863,14 @@ class Plotter:
             template='plotly_white',
             height=400,
             font=dict(family="Microsoft YaHei, SimHei, Arial", size=12),
-            yaxis=dict(range=[0, 100]),
-            xaxis=dict(type='category', tickangle=0)
+            yaxis=dict(range=[0, 100], fixedrange=False),  # 允许用户调整Y轴范围
+            xaxis=dict(type='category', tickangle=0),
+            dragmode='zoom',  # 启用拖拽缩放
+            modebar=dict(
+                orientation='v',
+                bgcolor='rgba(255,255,255,0.7)',
+                activecolor='#C41E3A'
+            )
         )
         
         return fig.to_html(full_html=False, include_plotlyjs=False, div_id=f'percentile_{column_name}')
@@ -901,8 +928,17 @@ class Plotter:
             template='plotly_white',
             height=400,
             font=dict(family="Microsoft YaHei, SimHei, Arial", size=12),
-            showlegend=False
+            showlegend=False,
+            dragmode='zoom',  # 启用拖拽缩放
+            modebar=dict(
+                orientation='v',
+                bgcolor='rgba(255,255,255,0.7)',
+                activecolor='#C41E3A'
+            )
         )
+        
+        # 允许用户调整Y轴范围
+        fig.update_yaxes(fixedrange=False)
         
         return fig.to_html(full_html=False, include_plotlyjs=False, div_id=f'dist_{indicator_name}')
     
