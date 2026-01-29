@@ -173,20 +173,32 @@ class Orchestrator:
                 'accounts_payable': bs.accounts_payable,
                 'notes_payable': bs.notes_payable,
                 'contract_liabilities': bs.contract_liabilities,
-                'total_equity': bs.total_equity,
-                'current_liabilities': bs.current_liabilities
+                'total_equity': bs.total_owners_equity,
+                'current_liabilities': bs.current_liabilities,
+                # 长期经营资产组成字段
+                'fixed_assets_net': bs.fixed_assets_net,
+                'construction_in_progress': bs.construction_in_progress,
+                'productive_biological_assets': bs.productive_biological_assets,
+                'consumptive_biological_assets': bs.consumptive_biological_assets,
+                'oil_and_gas_assets': bs.oil_and_gas_assets,
+                'right_of_use_assets': bs.right_of_use_assets,
+                'intangible_assets': bs.intangible_assets,
+                'development_expenditure': bs.development_expenditure,
+                'goodwill': bs.goodwill,
+                'long_term_deferred_expenses': bs.long_term_deferred_expenses,
+                'other_non_current_assets': bs.other_non_current_assets
             } for bs in balance_sheets])
             
             income_df = pd.DataFrame([{
                 'report_date': inc.report_date,
-                'operating_revenue': inc.operating_revenue,
-                'operating_cost': inc.operating_cost,
+                'operating_revenue': inc.total_operating_revenue,
+                'operating_cost': inc.total_operating_costs,
                 'net_profit': inc.net_profit
             } for inc in income_statements])
             
             cashflow_df = pd.DataFrame([{
                 'report_date': cf.report_date,
-                'operating_cashflow': cf.net_operating_cash_flow
+                'operating_cashflow': cf.net_cash_flows_from_operating_activities
             } for cf in cashflow_statements])
             
             return {
@@ -263,14 +275,28 @@ class Orchestrator:
             # 3. 长期资产周转率（取对数）
             lt_turnover = None
             if ttm_revenue and prev_row is not None:
-                # 计算长期经营资产 = 非流动资产合计 - 长期股权投资 - 投资性房地产 - 递延所得税资产
+                # 计算长期经营资产 = 固定资产 + 在建工程 + 生产性生物资产 + 公益性生物资产 + 
+                #                   油气资产 + 使用权资产 + 无形资产 + 开发支出 + 
+                #                   商誉 + 长期待摊费用 + 其他非流动资产
+                import pandas as pd
                 def calc_long_term_operating_assets(row_data):
-                    non_current = row_data.get('non_current_assets', 0) or 0
-                    lt_equity_inv = row_data.get('long_term_equity_investment', 0) or 0
-                    inv_property = row_data.get('investment_property', 0) or 0
-                    deferred_tax = row_data.get('deferred_tax_assets', 0) or 0
+                    def safe_get(key):
+                        val = row_data.get(key, 0) if isinstance(row_data, dict) else row_data[key] if key in row_data.index else 0
+                        return 0 if pd.isna(val) else val
                     
-                    return max(0, non_current - lt_equity_inv - inv_property - deferred_tax)
+                    return (
+                        safe_get('fixed_assets_net') +
+                        safe_get('construction_in_progress') +
+                        safe_get('productive_biological_assets') +
+                        safe_get('consumptive_biological_assets') +
+                        safe_get('oil_and_gas_assets') +
+                        safe_get('right_of_use_assets') +
+                        safe_get('intangible_assets') +
+                        safe_get('development_expenditure') +
+                        safe_get('goodwill') +
+                        safe_get('long_term_deferred_expenses') +
+                        safe_get('other_non_current_assets')
+                    )
                 
                 lt_assets_begin = calc_long_term_operating_assets(prev_row)
                 lt_assets_end = calc_long_term_operating_assets(row)
@@ -334,25 +360,54 @@ class Orchestrator:
         if current_index < 3:
             return None
         
-        # 获取最近4个季度的累计收入
+        # 获取最近4个季度的单季度收入
         quarterly_revenues = []
+        
         for i in range(current_index - 3, current_index + 1):
+            current_date = income_df.iloc[i]['report_date']
             cumulative = income_df.iloc[i]['operating_revenue']
             
-            # 转换为单季度值
-            if i > 0 and income_df.iloc[i]['report_date'].month != 3:
-                # 非Q1，需要减去上一季度
-                prev_cumulative = income_df.iloc[i - 1]['operating_revenue']
-                quarterly = self.calculator.convert_cumulative_to_quarterly(
-                    cumulative, prev_cumulative
-                )
-            else:
+            if cumulative is None:
+                return None
+            
+            # 判断是否为Q1（3月31日）
+            import pandas as pd
+            current_month = pd.to_datetime(current_date).month
+            
+            if current_month == 3:
                 # Q1，累计值就是单季度值
                 quarterly = cumulative
+            else:
+                # Q2/Q3/Q4，需要减去同年上一季度的累计值
+                # 找到同年上一季度的数据
+                prev_quarter_found = False
+                for j in range(i - 1, -1, -1):
+                    prev_date = income_df.iloc[j]['report_date']
+                    prev_year = pd.to_datetime(prev_date).year
+                    current_year = pd.to_datetime(current_date).year
+                    
+                    # 必须是同一年的上一季度
+                    if prev_year == current_year:
+                        prev_cumulative = income_df.iloc[j]['operating_revenue']
+                        if prev_cumulative is not None:
+                            quarterly = cumulative - prev_cumulative
+                            prev_quarter_found = True
+                            break
+                
+                if not prev_quarter_found:
+                    # 如果找不到同年上一季度，可能是年度第一个报告期，当作Q1处理
+                    quarterly = cumulative
             
+            if quarterly is None or quarterly < 0:
+                return None
+                
             quarterly_revenues.append(quarterly)
         
-        return self.calculator.calculate_ttm_revenue(quarterly_revenues[::-1])
+        # 计算TTM（最近4个季度的单季度收入之和）
+        if len(quarterly_revenues) == 4 and all(q is not None for q in quarterly_revenues):
+            return sum(quarterly_revenues)
+        
+        return None
     
     def _compare_with_market(
         self,
@@ -530,13 +585,22 @@ class Orchestrator:
                 
             elif indicator_col == 'lt_asset_turnover':
                 # 长期资产周转率 = 营业收入 / 长期经营资产
-                # 长期经营资产 = 非流动资产合计 - 长期股权投资 - 投资性房地产 - 递延所得税资产
+                # 长期经营资产 = 固定资产 + 在建工程 + 生产性生物资产 + 公益性生物资产 + 
+                #               油气资产 + 使用权资产 + 无形资产 + 开发支出 + 
+                #               商誉 + 长期待摊费用 + 其他非流动资产
                 balance_data = session.query(
                     BalanceSheet.stock_code,
-                    BalanceSheet.non_current_assets,
-                    BalanceSheet.long_term_equity_investment,
-                    BalanceSheet.investment_property,
-                    BalanceSheet.deferred_tax_assets
+                    BalanceSheet.fixed_assets_net,
+                    BalanceSheet.construction_in_progress,
+                    BalanceSheet.productive_biological_assets,
+                    BalanceSheet.consumptive_biological_assets,
+                    BalanceSheet.oil_and_gas_assets,
+                    BalanceSheet.right_of_use_assets,
+                    BalanceSheet.intangible_assets,
+                    BalanceSheet.development_expenditure,
+                    BalanceSheet.goodwill,
+                    BalanceSheet.long_term_deferred_expenses,
+                    BalanceSheet.other_non_current_assets
                 ).filter(
                     BalanceSheet.report_date == report_date
                 ).all()
@@ -551,12 +615,19 @@ class Orchestrator:
                 # 计算长期经营资产
                 balance_dict = {}
                 for row in balance_data:
-                    non_current = row.non_current_assets or 0
-                    lt_equity_inv = row.long_term_equity_investment or 0
-                    inv_property = row.investment_property or 0
-                    deferred_tax = row.deferred_tax_assets or 0
-                    
-                    lt_operating_assets = max(0, non_current - lt_equity_inv - inv_property - deferred_tax)
+                    lt_operating_assets = (
+                        (row.fixed_assets_net or 0) +
+                        (row.construction_in_progress or 0) +
+                        (row.productive_biological_assets or 0) +
+                        (row.consumptive_biological_assets or 0) +
+                        (row.oil_and_gas_assets or 0) +
+                        (row.right_of_use_assets or 0) +
+                        (row.intangible_assets or 0) +
+                        (row.development_expenditure or 0) +
+                        (row.goodwill or 0) +
+                        (row.long_term_deferred_expenses or 0) +
+                        (row.other_non_current_assets or 0)
+                    )
                     balance_dict[row.stock_code] = lt_operating_assets
                 
                 values = []
@@ -576,16 +647,16 @@ class Orchestrator:
                 # 只需要利润表数据
                 income_data = session.query(
                     IncomeStatement.stock_code,
-                    IncomeStatement.operating_revenue,
-                    IncomeStatement.operating_cost
+                    IncomeStatement.total_operating_revenue,
+                    IncomeStatement.total_operating_costs
                 ).filter(
                     IncomeStatement.report_date == report_date
                 ).all()
                 
                 values = []
                 for row in income_data:
-                    if row.operating_revenue and row.operating_cost and row.operating_revenue > 0:
-                        margin = (row.operating_revenue - row.operating_cost) / row.operating_revenue
+                    if row.total_operating_revenue and row.total_operating_costs and row.total_operating_revenue > 0:
+                        margin = (row.total_operating_revenue - row.total_operating_costs) / row.total_operating_revenue
                         values.append(margin)
                 
                 return values
@@ -628,7 +699,7 @@ class Orchestrator:
                 # 需要现金流量表和资产负债表数据
                 cashflow_data = session.query(
                     CashFlowStatement.stock_code,
-                    CashFlowStatement.net_operating_cash_flow
+                    CashFlowStatement.net_cash_flows_from_operating_activities
                 ).filter(
                     CashFlowStatement.report_date == report_date
                 ).all()
@@ -646,8 +717,8 @@ class Orchestrator:
                 values = []
                 for row in cashflow_data:
                     total_assets = balance_dict.get(row.stock_code)
-                    if total_assets and total_assets > 0 and row.net_operating_cash_flow is not None:
-                        ratio = row.net_operating_cash_flow / total_assets
+                    if total_assets and total_assets > 0 and row.net_cash_flows_from_operating_activities is not None:
+                        ratio = row.net_cash_flows_from_operating_activities / total_assets
                         values.append(ratio)
                 
                 return values

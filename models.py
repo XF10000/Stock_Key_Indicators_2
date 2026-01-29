@@ -40,7 +40,7 @@ class StockInfo(Base):
 class BalanceSheet(Base):
     """资产负债表模型（完整版）
     
-    存储所有A股公司的资产负债表数据。包含akshare接口返回的所有140个字段。
+    存储所有A股公司的资产负债表数据。包含akshare接口返回的所有139个字段。
     在 stock_code 和 report_date 上建立复合唯一索引以提高查询性能。
     """
 
@@ -50,8 +50,7 @@ class BalanceSheet(Base):
     stock_code = Column(String(20), nullable=False, index=True, comment="股票代码")
     report_date = Column(Date, nullable=False, index=True, comment="报告日期")
 
-    # 资产负债表字段（140个）
-    current_assets = Column(Float, comment="流动资产")
+    # 资产负债表字段（139个）
     monetary_capital = Column(Float, comment="货币资金")
     settlement_provisions = Column(Float, comment="结算备付金")
     loans_to_other_banks = Column(Float, comment="拆出资金")
@@ -105,7 +104,7 @@ class BalanceSheet(Base):
     fixed_assets_disposal = Column(Float, comment="固定资产清理")
     fixed_assets_and_disposal_total = Column(Float, comment="固定资产及清理合计")
     productive_biological_assets = Column(Float, comment="生产性生物资产")
-    public_welfare_biological_assets = Column(Float, comment="公益性生物资产")
+    consumptive_biological_assets = Column(Float, comment="消耗性生物资产")
     oil_and_gas_assets = Column(Float, comment="油气资产")
     contract_assets = Column(Float, comment="合同资产")
     right_of_use_assets = Column(Float, comment="使用权资产")
