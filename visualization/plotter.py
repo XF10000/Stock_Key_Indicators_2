@@ -9,6 +9,7 @@ from plotly.subplots import make_subplots
 from typing import Dict, List, Optional
 from datetime import datetime
 import os
+import plotly
 
 
 class Plotter:
@@ -23,6 +24,33 @@ class Plotter:
         """
         self.output_dir = output_dir
         os.makedirs(output_dir, exist_ok=True)
+        
+        # 读取本地Plotly.js文件内容（用于离线HTML）
+        self.plotly_js = self._load_plotly_js()
+    
+    def _load_plotly_js(self) -> str:
+        """
+        读取本地Plotly.js文件内容
+        
+        Returns:
+            Plotly.js的JavaScript代码
+        """
+        try:
+            plotly_path = os.path.join(
+                os.path.dirname(plotly.__file__), 
+                'package_data', 
+                'plotly.min.js'
+            )
+            
+            if os.path.exists(plotly_path):
+                with open(plotly_path, 'r', encoding='utf-8') as f:
+                    return f.read()
+            else:
+                # 如果本地文件不存在，返回CDN链接作为备选
+                return '<script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>'
+        except Exception as e:
+            print(f"警告：无法读取本地Plotly.js文件: {e}")
+            return '<script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>'
     
     def generate_html_report(
         self,
@@ -125,7 +153,9 @@ class Plotter:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{company_name} 财务指标分析报告</title>
-    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>
+    <script>
+    {self.plotly_js}
+    </script>
     <style>
         body {{
             font-family: "Microsoft YaHei", "SimHei", Arial, sans-serif;
