@@ -617,13 +617,16 @@ class Plotter:
         data = data.copy()
         data['report_date'] = pd.to_datetime(data['report_date'])
         
-        # 格式化为"YYYY年"，对于非12月31日的数据添加TTM标记
+        # 格式化为"YYYY年"，对于非12月31日的数据添加季度TTM标记
         def format_date_label(row):
             year = row['report_date'].year
-            if row['report_date'].month == 12 and row['report_date'].day == 31:
+            month = row['report_date'].month
+            if month == 12 and row['report_date'].day == 31:
                 return f'{year}年'
             else:
-                return f'{year}年TTM'
+                # 根据月份确定季度
+                quarter = (month - 1) // 3 + 1
+                return f'{year}Q{quarter}-TTM'
         
         data['date_label'] = data.apply(format_date_label, axis=1)
         
@@ -737,13 +740,16 @@ class Plotter:
         data = data.copy()
         data['report_date'] = pd.to_datetime(data['report_date'])
         
-        # 格式化为"YYYY年"，对于非12月31日的数据添加TTM标记
+        # 格式化为"YYYY年"，对于非12月31日的数据添加季度TTM标记
         def format_date_label(row):
             year = row['report_date'].year
-            if row['report_date'].month == 12 and row['report_date'].day == 31:
+            month = row['report_date'].month
+            if month == 12 and row['report_date'].day == 31:
                 return f'{year}年'
             else:
-                return f'{year}年TTM'
+                # 根据月份确定季度
+                quarter = (month - 1) // 3 + 1
+                return f'{year}Q{quarter}-TTM'
         
         data['date_label'] = data.apply(format_date_label, axis=1)
         
@@ -814,13 +820,16 @@ class Plotter:
         data = data.copy()
         data['report_date'] = pd.to_datetime(data['report_date'])
         
-        # 格式化为"YYYY年"，对于非12月31日的数据添加TTM标记
+        # 格式化为"YYYY年"，对于非12月31日的数据添加季度TTM标记
         def format_date_label(row):
             year = row['report_date'].year
-            if row['report_date'].month == 12 and row['report_date'].day == 31:
+            month = row['report_date'].month
+            if month == 12 and row['report_date'].day == 31:
                 return f'{year}年'
             else:
-                return f'{year}年TTM'
+                # 根据月份确定季度
+                quarter = (month - 1) // 3 + 1
+                return f'{year}Q{quarter}-TTM'
         
         data['date_label'] = data.apply(format_date_label, axis=1)
         
@@ -909,13 +918,16 @@ class Plotter:
         comp_data = comparison_df.copy()
         comp_data['report_date'] = pd.to_datetime(comp_data['report_date'])
         
-        # 格式化为"YYYY年"，对于非12月31日的数据添加TTM标记
+        # 格式化为"YYYY年"，对于非12月31日的数据添加季度TTM标记
         def format_date_label(row):
             year = row['report_date'].year
-            if row['report_date'].month == 12 and row['report_date'].day == 31:
+            month = row['report_date'].month
+            if month == 12 and row['report_date'].day == 31:
                 return f'{year}年'
             else:
-                return f'{year}年TTM'
+                # 根据月份确定季度
+                quarter = (month - 1) // 3 + 1
+                return f'{year}Q{quarter}-TTM'
         
         comp_data['date_label'] = comp_data.apply(format_date_label, axis=1)
         comp_data['percentile'] = comp_data['percentile'] * 100
