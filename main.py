@@ -20,9 +20,14 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:
-  python main.py --code SH600519              # 分析贵州茅台
-  python main.py --code SZ000858 --years 5   # 分析五粮液，分析近5年数据
-  python main.py --code SH600519 --no-excel  # 不生成Excel文件
+  python main.py --code SH600519                    # 分析贵州茅台（在线模式）
+  python main.py --code SZ000858 --years 5         # 分析五粮液，分析近5年数据
+  python main.py --code SH600519 --offline         # 使用离线模式（文件4.5MB，完全离线可用）
+  python main.py --code SH600519 --no-excel        # 不生成Excel文件
+  
+说明:
+  默认使用在线模式（CDN），生成的HTML文件约100KB，需要网络连接查看。
+  如果网络不稳定或需要完全离线使用，请添加 --offline 参数。
         """
     )
     
@@ -51,6 +56,12 @@ def main():
         '--no-excel',
         action='store_true',
         help='不生成Excel文件'
+    )
+    
+    parser.add_argument(
+        '--offline',
+        action='store_true',
+        help='使用离线模式（内嵌Plotly.js库，文件较大但完全离线可用）'
     )
     
     parser.add_argument(
@@ -114,7 +125,7 @@ def main():
         logger.info("分析完成，正在生成报告...")
         
         # 初始化可视化模块
-        plotter = Plotter(output_dir=args.output_dir)
+        plotter = Plotter(output_dir=args.output_dir, offline_mode=args.offline)
         
         # 生成HTML报告
         html_path = plotter.generate_html_report(analysis_result)

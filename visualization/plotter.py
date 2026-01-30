@@ -10,23 +10,46 @@ from typing import Dict, List, Optional
 from datetime import datetime
 import os
 import plotly
+import requests
 
 
 class Plotter:
     """图表生成器"""
     
-    def __init__(self, output_dir: str = "output"):
+    def __init__(self, output_dir: str = "output", offline_mode: bool = False):
         """
         初始化图表生成器
         
         Args:
             output_dir: 输出目录
+            offline_mode: 是否使用离线模式（默认False，使用CDN）
         """
         self.output_dir = output_dir
+        self.offline_mode = offline_mode
         os.makedirs(output_dir, exist_ok=True)
         
-        # 读取本地Plotly.js文件内容（用于离线HTML）
-        self.plotly_js = self._load_plotly_js()
+        # 如果是离线模式，读取本地Plotly.js文件
+        if self.offline_mode:
+            self.plotly_js = self._load_plotly_js()
+        else:
+            self.plotly_js = None
+    
+    def _check_cdn_available(self, timeout: int = 3) -> bool:
+        """
+        检测CDN是否可用
+        
+        Args:
+            timeout: 超时时间（秒）
+            
+        Returns:
+            CDN是否可用
+        """
+        cdn_url = "https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"
+        try:
+            response = requests.head(cdn_url, timeout=timeout)
+            return response.status_code == 200
+        except:
+            return False
     
     def _load_plotly_js(self) -> str:
         """
@@ -43,14 +66,47 @@ class Plotter:
             )
             
             if os.path.exists(plotly_path):
+                print(f"正在加载本地Plotly.js库 ({os.path.getsize(plotly_path) / 1024 / 1024:.1f} MB)...")
                 with open(plotly_path, 'r', encoding='utf-8') as f:
                     return f.read()
             else:
-                # 如果本地文件不存在，返回CDN链接作为备选
-                return '<script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>'
+                raise FileNotFoundError("本地Plotly.js文件不存在")
         except Exception as e:
-            print(f"警告：无法读取本地Plotly.js文件: {e}")
-            return '<script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>'
+            print(f"错误：无法读取本地Plotly.js文件: {e}")
+            raise
+    
+    def _get_plotly_script(self) -> str:
+        """
+        根据模式返回Plotly脚本标签
+        
+        Returns:
+            Plotly脚本的HTML标签
+        """
+        if self.offline_mode:
+            # 离线模式：内嵌完整的Plotly.js代码
+            return f"<script>\n    {self.plotly_js}\n    </script>"
+        else:
+            # 在线模式：使用CDN
+            print("检测CDN可用性...")
+            if self._check_cdn_available():
+                print("✓ CDN可用，使用在线模式（文件约100KB）")
+                return '<script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>'
+            else:
+                # CDN不可用，提示用户使用离线模式
+                print("\n" + "="*60)
+                print("⚠️  警告：CDN不可用！")
+                print("="*60)
+                print("无法连接到Plotly CDN，HTML报告中的图表可能无法显示。")
+                print("\n解决方案：")
+                print("  使用 --offline 参数生成离线版本的报告：")
+                print("  python main.py --code 000333 --years 20 --offline")
+                print("\n离线模式说明：")
+                print("  - 文件大小：约4.5MB（包含完整Plotly.js库）")
+                print("  - 优点：完全离线可用，无需网络连接")
+                print("  - 缺点：文件较大")
+                print("="*60 + "\n")
+                # 仍然返回CDN链接，让用户决定是否继续
+                return '<script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>'
     
     def generate_html_report(
         self,
@@ -153,9 +209,7 @@ class Plotter:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{company_name} 财务指标分析报告</title>
-    <script>
-    {self.plotly_js}
-    </script>
+    {self._get_plotly_script()}
     <style>
         body {{
             font-family: "Microsoft YaHei", "SimHei", Arial, sans-serif;
