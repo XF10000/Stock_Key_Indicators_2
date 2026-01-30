@@ -125,7 +125,7 @@ class Plotter:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{company_name} 财务指标分析报告</title>
-    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js@2.27.0/dist/plotly.min.js"></script>
     <style>
         body {{
             font-family: "Microsoft YaHei", "SimHei", Arial, sans-serif;
