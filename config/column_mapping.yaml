@@ -27,9 +27,8 @@ balance_sheet:
   SUBSIDY_RECE: subsidies_receivable
   DEPOSIT_RECE: deposits_receivable
   INTERNAL_RECE: internal_receivables
-  OTHER_RECE: other_receivables
-  OTHER_RECE_TOTAL: other_receivables_total
-  INVENTORIES: inventories
+  TOTAL_OTHER_RECE: other_receivables
+  INVENTORY: inventories
   HELD_FOR_SALE_ASSETS: assets_held_for_sale
   PREPAID_EXPENSE: prepaid_expenses
   CURRENT_ASSET_PENDING_DISPOSAL: current_assets_pending_disposal
@@ -43,20 +42,14 @@ balance_sheet:
   FVOCI_FINASSET: financial_assets_at_fvoci
   AMORTIZE_COST_FINASSET: financial_assets_at_amortized_cost
   AVAILABLE_SALE_FINASSET: available_for_sale_financial_assets
-  LONG_TERM_EQUITY_INVEST: long_term_equity_investments
-  INVEST_REAL_ESTATE: investment_property
+  LONG_EQUITY_INVEST: long_term_equity_investments
+  INVEST_REALESTATE: investment_property
   LONG_TERM_RECE: long_term_receivables
   OTHER_EQUITY_INVEST: other_equity_instrument_investments
   OTHER_NONCURRENT_FINASSET: other_non_current_financial_assets
   OTHER_LONG_TERM_INVEST: other_long_term_investments
-  FIXED_ASSET_ORIGINAL_VALUE: fixed_assets_original_value
-  ACCUMULATED_DEPRECIATION: accumulated_depreciation
-  FIXED_ASSET_NET_VALUE: fixed_assets_net_value
-  FIXED_ASSET_IMPAIRMENT: fixed_assets_impairment_provision
-  CIP_TOTAL: construction_in_progress_total
+  FIXED_ASSET: fixed_assets_net_value
   CIP: construction_in_progress
-  PROJECT_MATERIAL: construction_materials
-  FIXED_ASSET: fixed_assets_net
   FIXED_ASSET_DISPOSAL: fixed_assets_disposal
   FIXED_ASSET_DISPOSAL_TOTAL: fixed_assets_and_disposal_total
   PRODUCTIVE_BIOLOGY_ASSET: productive_biological_assets

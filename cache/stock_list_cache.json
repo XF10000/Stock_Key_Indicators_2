@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-01-25T12:52:44.385579",
-  "count": 5473,
+  "timestamp": "2026-03-03T14:57:22.657069",
+  "count": 5485,
   "data": [
     {
       "stock_code": "000001",
@@ -434,7 +434,7 @@
     },
     {
       "stock_code": "000430",
-      "stock_name": "*ST张股",
+      "stock_name": "ST张家界",
       "market_code": "SZ000430"
     },
     {
@@ -1404,7 +1404,7 @@
     },
     {
       "stock_code": "000793",
-      "stock_name": "ST华闻",
+      "stock_name": "*ST华闻",
       "market_code": "SZ000793"
     },
     {
@@ -1629,7 +1629,7 @@
     },
     {
       "stock_code": "000875",
-      "stock_name": "吉电股份",
+      "stock_name": "电投绿能",
       "market_code": "SZ000875"
     },
     {
@@ -2156,6 +2156,11 @@
       "stock_code": "001219",
       "stock_name": "青岛食品",
       "market_code": "SZ001219"
+    },
+    {
+      "stock_code": "001220",
+      "stock_name": "世盟股份",
+      "market_code": "SZ001220"
     },
     {
       "stock_code": "001221",
@@ -4419,7 +4424,7 @@
     },
     {
       "stock_code": "002379",
-      "stock_name": "宏创控股",
+      "stock_name": "宏桥控股",
       "market_code": "SZ002379"
     },
     {
@@ -5009,7 +5014,7 @@
     },
     {
       "stock_code": "002512",
-      "stock_name": "达华智能",
+      "stock_name": "ST达华",
       "market_code": "SZ002512"
     },
     {
@@ -6034,7 +6039,7 @@
     },
     {
       "stock_code": "002731",
-      "stock_name": "萃华珠宝",
+      "stock_name": "ST萃华",
       "market_code": "SZ002731"
     },
     {
@@ -8409,7 +8414,7 @@
     },
     {
       "stock_code": "300209",
-      "stock_name": "有棵树",
+      "stock_name": "行云科技",
       "market_code": "SZ300209"
     },
     {
@@ -12284,7 +12289,7 @@
     },
     {
       "stock_code": "301028",
-      "stock_name": "东亚机械",
+      "stock_name": "鼎熔岩",
       "market_code": "SZ301028"
     },
     {
@@ -14459,7 +14464,7 @@
     },
     {
       "stock_code": "600015",
-      "stock_name": "XD华夏银",
+      "stock_name": "华夏银行",
       "market_code": "SH600015"
     },
     {
@@ -17239,7 +17244,7 @@
     },
     {
       "stock_code": "600742",
-      "stock_name": "XD富维股",
+      "stock_name": "富维股份",
       "market_code": "SH600742"
     },
     {
@@ -17274,7 +17279,7 @@
     },
     {
       "stock_code": "600750",
-      "stock_name": "江中药业",
+      "stock_name": "华润江中",
       "market_code": "SH600750"
     },
     {
@@ -18329,7 +18334,7 @@
     },
     {
       "stock_code": "601077",
-      "stock_name": "XD渝农商",
+      "stock_name": "渝农商行",
       "market_code": "SH601077"
     },
     {
@@ -18396,6 +18401,11 @@
       "stock_code": "601111",
       "stock_name": "中国国航",
       "market_code": "SH601111"
+    },
+    {
+      "stock_code": "601112",
+      "stock_name": "振石股份",
+      "market_code": "SH601112"
     },
     {
       "stock_code": "601113",
@@ -20084,7 +20094,7 @@
     },
     {
       "stock_code": "603187",
-      "stock_name": "XD海容冷",
+      "stock_name": "海容冷链",
       "market_code": "SH603187"
     },
     {
@@ -20461,6 +20471,11 @@
       "stock_code": "603283",
       "stock_name": "赛腾股份",
       "market_code": "SH603283"
+    },
+    {
+      "stock_code": "603284",
+      "stock_name": "林平发展",
+      "market_code": "SH603284"
     },
     {
       "stock_code": "603285",
@@ -25174,7 +25189,7 @@
     },
     {
       "stock_code": "688579",
-      "stock_name": "山大地纬",
+      "stock_name": "地纬智能",
       "market_code": "SH688579"
     },
     {
@@ -25678,6 +25693,11 @@
       "market_code": "SH688711"
     },
     {
+      "stock_code": "688712",
+      "stock_name": "北芯生命",
+      "market_code": "SH688712"
+    },
+    {
       "stock_code": "688716",
       "stock_name": "中研股份",
       "market_code": "SH688716"
@@ -25828,6 +25848,11 @@
       "market_code": "SH688783"
     },
     {
+      "stock_code": "688785",
+      "stock_name": "恒运昌",
+      "market_code": "SH688785"
+    },
+    {
       "stock_code": "688786",
       "stock_name": "悦安新材",
       "market_code": "SH688786"
@@ -25901,6 +25926,16 @@
       "stock_code": "688809",
       "stock_name": "强一股份",
       "market_code": "SH688809"
+    },
+    {
+      "stock_code": "688816",
+      "stock_name": "易思维",
+      "market_code": "SH688816"
+    },
+    {
+      "stock_code": "688818",
+      "stock_name": "电科蓝天",
+      "market_code": "SH688818"
     },
     {
       "stock_code": "688819",
@@ -26233,6 +26268,11 @@
       "market_code": "SH920118"
     },
     {
+      "stock_code": "920119",
+      "stock_name": "美德乐",
+      "market_code": "SH920119"
+    },
+    {
       "stock_code": "920121",
       "stock_name": "江天科技",
       "market_code": "SH920121"
@@ -26298,6 +26338,11 @@
       "market_code": "SH920158"
     },
     {
+      "stock_code": "920159",
+      "stock_name": "农大科技",
+      "market_code": "SH920159"
+    },
+    {
       "stock_code": "920160",
       "stock_name": "北矿检测",
       "market_code": "SH920160"
@@ -26308,9 +26353,19 @@
       "market_code": "SH920163"
     },
     {
+      "stock_code": "920166",
+      "stock_name": "海圣医疗",
+      "market_code": "SH920166"
+    },
+    {
       "stock_code": "920167",
       "stock_name": "同享科技",
       "market_code": "SH920167"
+    },
+    {
+      "stock_code": "920168",
+      "stock_name": "通宝光电",
+      "market_code": "SH920168"
     },
     {
       "stock_code": "920169",
@@ -26336,6 +26391,11 @@
       "stock_code": "920179",
       "stock_name": "凯德石英",
       "market_code": "SH920179"
+    },
+    {
+      "stock_code": "920180",
+      "stock_name": "爱得科技",
+      "market_code": "SH920180"
     },
     {
       "stock_code": "920184",

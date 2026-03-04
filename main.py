@@ -9,6 +9,7 @@ from pathlib import Path
 
 from orchestrator import Orchestrator
 from visualization.plotter import Plotter
+from analysis.reconstructor import BalanceSheetReconstructor
 from utils.logger import Logger
 
 
@@ -136,6 +137,24 @@ def main():
             excel_path = plotter.export_to_excel(analysis_result)
             logger.info(f"Excel文件已生成: {excel_path}")
         
+        # 生成资产资本表
+        logger.info("正在生成资产资本表...")
+        try:
+            reconstructor = BalanceSheetReconstructor('database.sqlite')
+            reconstructed_df = reconstructor.reconstruct_balance_sheet(stock_code, years=args.years)
+            
+            if not reconstructed_df.empty:
+                asset_capital_path = reconstructor.export_to_excel(
+                    reconstructed_df, 
+                    stock_code, 
+                    args.output_dir
+                )
+                logger.info(f"资产资本表已生成: {asset_capital_path}")
+            else:
+                logger.warning(f"未找到股票 {stock_code} 的资产负债表数据，跳过资产资本表生成")
+        except Exception as e:
+            logger.warning(f"生成资产资本表时出错: {str(e)}")
+        
         logger.info("=" * 60)
         logger.info("分析完成！")
         logger.info("=" * 60)
@@ -165,6 +184,8 @@ def main():
         logger.info(f"  HTML报告: {html_path}")
         if not args.no_excel:
             logger.info(f"  Excel数据: {excel_path}")
+        if 'asset_capital_path' in locals():
+            logger.info(f"  资产资本表: {asset_capital_path}")
         
     except KeyboardInterrupt:
         logger.info("\n用户中断")
